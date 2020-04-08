@@ -41,7 +41,6 @@ module.exports = {
     ]),
     ExtractTextPluginLight,
     ExtractTextPluginDark
-
   ],
   resolve: {
     alias: {

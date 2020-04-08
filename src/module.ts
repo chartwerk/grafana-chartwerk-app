@@ -1,5 +1,5 @@
-import './css/panel.dark.scss';
-import './css/panel.light.scss';
+import './sass/panel.dark.scss';
+import './sass/panel.light.scss';
 
 import template from './partials/module.html';
 
