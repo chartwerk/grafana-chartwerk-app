@@ -9,6 +9,7 @@
   },
   "keywords": [],
   "author": "CorpGlory",
+  "license": "Apache-2.0",
   "repository": "https://github.com/chartwerk/grafana-chartwerk-panel",
   "devDependencies": {
     "@chartwerk/line-chart": "github:chartwerk/line-chart",
