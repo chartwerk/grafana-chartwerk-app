@@ -9,7 +9,10 @@
       "url": "corpglory.com"
     },
     "keywords": [ ],
-    "logos": { },
+    "logos": {
+      "small": "assets/logo.png",
+      "large": "assets/logo.png"
+    },
     "links": [ ],
     "screenshots": [ ],
     "version": "0.1.0",
