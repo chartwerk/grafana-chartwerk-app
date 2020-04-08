@@ -23,6 +23,7 @@ import * as _ from 'lodash';
 
 const PLUGIN_PATH = 'public/plugins/corpglory-chartwerk-panel';
 const PARTIALS_PATH = `${PLUGIN_PATH}/partials`;
+const MILLISECONDS_IN_MINUTE = 60 * 1000;
 
 enum TickOrientation {
   HORIZONTAL = 'horizontal',
@@ -56,7 +57,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
         to: moment()
       }
     },
-    confidence: 0
+    confidence: 0,
+    timeInterval: undefined
   };
 
   tooltip?: GraphTooltip;
@@ -172,9 +174,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onInitEditMode(): void {
-    this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 2);
-    this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
-    this.addEditorTab('Metrics', `${PARTIALS_PATH}/tab_metrics.html`, 4);
+    this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 2);
+    this.addEditorTab('Metrics', `${PARTIALS_PATH}/tab_metrics.html`, 3);
+    this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 4);
   }
 
   onRender(): void {
@@ -319,7 +321,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       mouseMove: this.onChartHover.bind(this),
       mouseOut: this.onChartLeave.bind(this)
     }
-    const timeInterval = 60;
+    const timeInterval = this.timeInterval || this.seriesTimeStep;
     const tickFormat = {
       xAxis: this.xAxisTickFormat,
       xTickOrientation: this.xAxisOrientation
@@ -422,6 +424,23 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set confidence(confidence: number) {
     this.panel.confidence = confidence;
+  }
+
+  get timeInterval(): number {
+    return this.panel.timeInterval;
+  }
+
+  set timeInterval(interval: number) {
+    this.panel.timeInterval = interval;
+  }
+
+  // TODO: not undefined
+  get seriesTimeStep(): number | undefined {
+    if(this.series.length === 0 || this.series[0].datapoints.length < 2) {
+      return undefined;
+    }
+    const timestampInterval = this.series[0].datapoints[1][1] - this.series[0].datapoints[0][1];
+    return timestampInterval / MILLISECONDS_IN_MINUTE;
   }
 }
 
