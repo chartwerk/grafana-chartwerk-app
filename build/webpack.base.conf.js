@@ -2,6 +2,10 @@ const path = require('path');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const ReplaceInFileWebpackPlugin = require('replace-in-file-webpack-plugin');
+
+const packageJson = require('../package.json');
+
 const ExtractTextPluginLight = new ExtractTextPlugin('./css/panel.light.css');
 const ExtractTextPluginDark = new ExtractTextPlugin('./css/panel.dark.css');
 
@@ -38,6 +42,22 @@ module.exports = {
     new CopyWebpackPlugin([
       { from: 'plugin.json' },
       { from: 'partials/**/*' }
+    ]),
+    new ReplaceInFileWebpackPlugin([
+      {
+        dir: 'dist',
+        files: ['plugin.json'],
+        rules: [
+          {
+            search: '%VERSION%',
+            replace: packageJson.version,
+          },
+          {
+            search: '%TODAY%',
+            replace: new Date().toISOString().substring(0, 10),
+          },
+        ],
+      },
     ]),
     ExtractTextPluginLight,
     ExtractTextPluginDark
