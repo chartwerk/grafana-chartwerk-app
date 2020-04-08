@@ -1,5 +1,5 @@
 <div class="gf-form">
-  <label class="gf-form-label query-keyword"> X-axis ticks orientation </label>
+  <label class="gf-form-label query-keyword width-12"> X-axis ticks orientation </label>
   <div class="gf-form-select-wrapper">
     <select class="gf-form-input width-12"
       ng-model="ctrl.xAxisOrientation"
@@ -10,7 +10,7 @@
 </div>
 
 <div class="gf-form">
-  <label class="gf-form-label query-keyword"> X-axis ticks format </label>
+  <label class="gf-form-label query-keyword width-12"> X-axis ticks format </label>
   <input
     type="text"
     class="gf-form-input width-12"
@@ -20,7 +20,7 @@
 </div>
 
 <div class="gf-form">
-  <label class="gf-form-label query-keyword"> X-axis label </label>
+  <label class="gf-form-label query-keyword width-12"> X-axis label </label>
   <input
     type="text"
     class="gf-form-input width-12"
@@ -30,11 +30,22 @@
 </div>
 
 <div class="gf-form">
-  <label class="gf-form-label query-keyword"> Y-axis label </label>
+  <label class="gf-form-label query-keyword width-12"> Y-axis label </label>
   <input
     type="text"
     class="gf-form-input width-12"
     ng-model="ctrl.yAxisLabel"
     ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Time interval (minutes) </label>
+  <input
+    type="number"
+    class="gf-form-input width-12"
+    ng-model="ctrl.timeInterval"
+    ng-blur="ctrl.onConfigChange()"
+    ng-max="60"
   >
 </div>
