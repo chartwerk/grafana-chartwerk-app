@@ -1,0 +1,25 @@
+<div class="submenu-controls" ng-show="ctrl.shouldDisplayVariables" style="height: 10%;">
+  <div class="submenu-item gf-form-inline" ng-repeat="(name, options) in ctrl.displayedVariables" ng-show="options.displayed">
+    <label
+      class="gf-form-label template-variable"
+    >
+      {{ options.label || name }}
+    </label>
+    <value-select-dropdown
+      ng-if="ctrl.getVariableByName(name).type !== 'adhoc' && ctrl.getVariableByName(name).type !== 'textbox'"
+      dashboard="ctrl.dashboard"
+      variable="ctrl.getVariableByName(name)"
+      on-updated="ctrl.onVariableUpdate(ctrl.getVariableByName(name))"
+    ></value-select-dropdown>
+  </div>
+  <timepicker
+    class="timepicker"
+    value="ctrl.timeRangeOverride"
+    onChange="ctrl.onTimeRangeApplyClick.bind(ctrl)"
+  />
+  <button ng-click="ctrl.onLockClick()" class="btn navbar-button lock-icon">
+    <i ng-if="ctrl.isTimePickerLocked" class="fa fa-lock" aria-hidden="true"></i>
+    <i ng-if="!ctrl.isTimePickerLocked" class="fa fa-unlock-alt" aria-hidden="true"></i>
+  </button>
+</div>
+<div class="chartwerk-container" ng-style="ctrl.containerStyle"></div>

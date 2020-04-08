@@ -1,0 +1,22 @@
+{
+  "type": "panel",
+  "name": "Chartwerk Panel",
+  "id": "corpglory-chartwerk-panel",
+  "info": {
+    "description": "Chartwerk Panel",
+    "author": {
+      "name": "CorpGlory",
+      "url": "corpglory.com"
+    },
+    "keywords": [ ],
+    "logos": { },
+    "links": [ ],
+    "screenshots": [ ],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaVersion": "6.6.1+",
+    "plugins": [ ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "grafana-chartwerk-panel",
+  "version": "1.0.0",
+  "description": "Chartwerk Panel",
+  "main": "dist/module.js",
+  "scripts": {
+    "build": "webpack --config build/webpack.prod.conf.js",
+    "dev": "webpack --config build/webpack.dev.conf.js"
+  },
+  "keywords": [],
+  "author": "CorpGlory",
+  "repository": "https://github.com/chartwerk/grafana-chartwerk-panel",
+  "devDependencies": {
+    "@chartwerk/line-chart": "github:chartwerk/line-chart",
+    "@grafana/data": "^6.7.1",
+    "@grafana/runtime": "^6.7.1",
+    "@grafana/ui": "^6.7.1",
+    "@types/angular": "^1.6.57",
+    "@types/grafana": "github:CorpGlory/types-grafana",
+    "@types/jquery": "^3.3.34",
+    "@types/lodash": "^4.14.74",
+    "copy-webpack-plugin": "^4.5.1",
+    "css-loader": "^3.2.0",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "moment": "^2.24.0",
+    "ng-annotate-webpack-plugin": "^0.3.0",
+    "node-sass": "^4.12.0",
+    "raw-loader": "^4.0.0",
+    "replace-in-file-webpack-plugin": "^1.0.6",
+    "sass-loader": "^7.3.1",
+    "style-loader": "^1.0.0",
+    "ts-loader": "^4.4.0",
+    "typescript": "^3.8.3",
+    "webpack": "^4.12.0",
+    "webpack-cli": "^3.0.3"
+  },
+  "dependencies": {}
+}

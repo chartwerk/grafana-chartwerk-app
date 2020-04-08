@@ -1,0 +1,40 @@
+<div class="gf-form">
+  <label class="gf-form-label query-keyword"> X-axis ticks orientation </label>
+  <div class="gf-form-select-wrapper">
+    <select class="gf-form-input width-12"
+      ng-model="ctrl.xAxisOrientation"
+      ng-options="orientation for orientation in ctrl.ticksOrientation"
+      ng-change="ctrl.onConfigChange()"
+    />
+  </div>
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword"> X-axis ticks format </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.xAxisTickFormat"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword"> X-axis label </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.xAxisLabel"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword"> Y-axis label </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.yAxisLabel"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
