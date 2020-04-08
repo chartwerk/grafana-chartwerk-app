@@ -37,7 +37,8 @@ module.exports = {
     new webpack.optimize.OccurrenceOrderPlugin(),
     new CopyWebpackPlugin([
       { from: 'plugin.json' },
-      { from: 'partials/**/*' }
+      { from: 'partials/**/*' },
+      { from: 'assets/**/*' }
     ]),
     ExtractTextPluginLight,
     ExtractTextPluginDark
