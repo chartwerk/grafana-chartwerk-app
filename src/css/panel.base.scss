@@ -5,7 +5,7 @@ $timepickerHeight: 225px;
   right: 0;
   position: absolute;
   margin-right: 25px;
-  
+
   .custom-scrollbar {
     display: none;
   }
@@ -38,4 +38,9 @@ $timepickerHeight: 225px;
 .lock-icon {
   position: absolute;
   right: $timepickerWidth + 35px;
+}
+// careful: it might break something
+// ".panel-content" div is outside the panel
+.panel-content {
+  overflow: inherit;
 }
