@@ -16,7 +16,7 @@
     "links": [ ],
     "screenshots": [ ],
     "version": "0.1.0",
-    "updated": "2020-04-08"
+    "updated": "2020-04-09"
   },
   "dependencies": {
     "grafanaVersion": "6.6.1+",
