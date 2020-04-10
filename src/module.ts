@@ -58,7 +58,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       }
     },
     confidence: 0,
-    timeInterval: undefined
+    timeInterval: undefined,
+    override: ''
   };
 
   tooltip?: GraphTooltip;
