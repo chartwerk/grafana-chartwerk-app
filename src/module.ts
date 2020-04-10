@@ -315,16 +315,21 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   getConfidenceForSeries(): void {
-    if(this.panel.variableNamesForOverride === undefined) {
+    // TODO: use TimeSeries type from line-chart
+    // @ts-ignore
+    this.series.forEach(serie => { serie.confidence = 0 });
+
+    // TODO: support multiple overrides and not only variables
+    const variable = this.getVariableByName(this.panel.override.substr(1));
+    if(variable === undefined || variable.options === undefined) {
       return;
     }
+    let variableNames = variable.options.filter(option => option.selected);
+    variableNames = variableNames.map(name => name.value);
     this.series.forEach(serie => {
-      if(_.includes(this.panel.variableNamesForOverride, serie.target)) {
+      if(_.includes(variableNames, serie.target)) {
         // @ts-ignore
         serie.confidence = this.panel.confidence;
-      } else {
-        // @ts-ignore
-        serie.confidence = 0;
       }
     });
   }
@@ -455,24 +460,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   set override(alias: string) {
-    // TODO: support multiple overrides and not only variables
-    const variable = this.getVariableByName(alias.substr(1));
-    if(variable !== undefined && variable.options !== undefined) {
-      let variableNames = variable.options.filter(option => option.selected === true);
-      variableNames = variableNames.map(name => name.value);
-      this.panel.variableNamesForOverride = variableNames;
-    } else {
-      this.panel.variableNamesForOverride = [];
-    }
     this.panel.override = alias;
-  }
-
-  get variableNamesForOverride(): string[] {
-    return this.panel.variableNamesForOverride;
-  }
-
-  set variableNamesForOverride(names: string[]) {
-    this.panel.variableNamesForOverride = names;
   }
 
   // TODO: not undefined
