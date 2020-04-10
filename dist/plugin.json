@@ -14,10 +14,7 @@
       "large": "assets/logo.png"
     },
     "links": [ ],
-    "screenshots": [{
-      "name": "Main",
-      "path": "assets/screenshots/main.png"
-    }],
+    "screenshots": ["assets/screenshots/main.png"],
     "version": "0.1.0",
     "updated": "2020-04-10"
   },
