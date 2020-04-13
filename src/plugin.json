@@ -14,7 +14,10 @@
       "large": "assets/logo.png"
     },
     "links": [ ],
-    "screenshots": ["assets/screenshots/main.png"],
+    "screenshots": [{
+      "name": "Main",
+      "path": "assets/screenshots/main.png"
+    }],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
