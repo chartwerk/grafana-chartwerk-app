@@ -301,6 +301,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
   }
 
+  onLegendClick(idx: number): void {
+    // @ts-ignore
+    this.series[idx].visible = this.series[idx].visible === undefined ? false : !this.series[idx].visible;
+    this.render();
+  }
+
   onLockClick(): void {
     switch(this.timeRangeSource) {
       case TimeRangeSource.DASHBOARD:
@@ -341,7 +347,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       zoomIn: this.onZoomIn.bind(this),
       zoomOut: this.onZoomOut.bind(this),
       mouseMove: this.onChartHover.bind(this),
-      mouseOut: this.onChartLeave.bind(this)
+      mouseOut: this.onChartLeave.bind(this),
+      onLegendClick: this.onLegendClick.bind(this)
     }
     const timeInterval = this.timeInterval || this.seriesTimeStep;
     const tickFormat = {
