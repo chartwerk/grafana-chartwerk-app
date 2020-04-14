@@ -1,0 +1,10 @@
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Visualization </label>
+  <div class="gf-form-select-wrapper">
+    <select class="gf-form-input width-12"
+      ng-model="ctrl.visualization"
+      ng-options="visualization for visualization in ctrl.visualizationTypes"
+      ng-change="ctrl.onConfigChange()"
+    />
+  </div>
+</div>

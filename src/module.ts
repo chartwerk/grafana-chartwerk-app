@@ -7,6 +7,7 @@ import './timepicker';
 
 import { GraphTooltip } from './graph_tooltip';
 
+import { ChartwerkBarChart } from '@chartwerk/bar-chart';
 import { ChartwerkLineChart } from '@chartwerk/line-chart';
 
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
@@ -36,6 +37,11 @@ enum TimeRangeSource {
   PANEL = 'panel'
 }
 
+enum Visualization {
+  LINE = 'line',
+  BAR = 'bar'
+}
+
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
 } else {
@@ -59,12 +65,14 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     },
     confidence: 0,
     timeInterval: undefined,
-    override: ''
+    override: '',
+    visualization: Visualization.LINE
   };
 
   tooltip?: GraphTooltip;
   ticksOrientation = _.map(TickOrientation, (name: string) => name);
   timeRangeSources = _.map(TimeRangeSource, (name: string) => name);
+  visualizationTypes = _.map(Visualization, (name: string) => name);
 
   chartContainer?: HTMLElement;
 
@@ -175,16 +183,31 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onInitEditMode(): void {
-    this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 2);
-    this.addEditorTab('Metrics', `${PARTIALS_PATH}/tab_metrics.html`, 3);
-    this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 4);
+    this.addEditorTab('Visualization', `${PARTIALS_PATH}/tab_visualization.html`, 2);
+    this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
+    if(this.visualization === Visualization.LINE) {
+      this.addEditorTab('Metrics', `${PARTIALS_PATH}/tab_metrics.html`, 4);
+    }
+    this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 5);
   }
 
   onRender(): void {
     this.updateVariables();
     this.getConfidenceForSeries();
-    // TODO: choose visualization
-    new ChartwerkLineChart(this.chartContainer, this.series as any, this.chartOptions);
+
+    switch(this.visualization) {
+      case Visualization.LINE:
+        new ChartwerkLineChart(this.chartContainer, this.series as any, this.chartOptions);
+        break;
+
+      case Visualization.BAR:
+        new ChartwerkBarChart(this.chartContainer, this.series as any, this.chartOptions);
+        break;
+
+      default:
+        throw new Error(`Uknown visualization type: ${this.visualization}`);
+        break;
+    }
   }
 
   getVariableByName(variableName: string): QueryVariable {
@@ -471,7 +494,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.override = alias;
   }
 
-  // TODO: not undefined
+  get visualization(): Visualization {
+    return this.panel.visualization;
+  }
+
+  set visualization(alias: Visualization) {
+    this.panel.visualization = alias;
+  }
+
+  // TODO: not "| undefined"
   get seriesTimeStep(): number | undefined {
     if(this.series.length === 0 || this.series[0].datapoints.length < 2) {
       return undefined;
