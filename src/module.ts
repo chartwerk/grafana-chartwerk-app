@@ -66,7 +66,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     confidence: 0,
     timeInterval: undefined,
     override: '',
-    visualization: Visualization.LINE
+    visualization: Visualization.LINE,
+    upperBound: '',
+    lowerBound: ''
   };
 
   tooltip?: GraphTooltip;
@@ -382,13 +384,18 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       yAxis: this.yAxisLabel,
       xAxis: this.xAxisLabel
     }
+    const bounds = {
+      upper: this.upperBound,
+      lower: this.lowerBound
+    }
     const options = {
       colors,
       eventsCallbacks,
       timeInterval,
       tickFormat,
       labelFormat,
-      confidence: this.confidence
+      confidence: this.confidence,
+      bounds
     };
     return options;
   }
@@ -492,6 +499,22 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set override(alias: string) {
     this.panel.override = alias;
+  }
+
+  get upperBound(): string {
+    return this.panel.upperBound;
+  }
+
+  set upperBound(alias: string) {
+    this.panel.upperBound = alias;
+  }
+
+  get lowerBound(): string {
+    return this.panel.lowerBound;
+  }
+
+  set lowerBound(alias: string) {
+    this.panel.lowerBound = alias;
   }
 
   get visualization(): Visualization {
