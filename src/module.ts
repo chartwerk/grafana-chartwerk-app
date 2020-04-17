@@ -68,7 +68,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     override: '',
     visualization: Visualization.LINE,
     upperBound: '',
-    lowerBound: ''
+    lowerBound: '',
+    hiddenMetrics: [],
   };
 
   tooltip?: GraphTooltip;
@@ -196,6 +197,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   onRender(): void {
     this.updateVariables();
     this.getConfidenceForSeries();
+    this.getVisibleForSeries();
 
     switch(this.visualization) {
       case Visualization.LINE:
@@ -327,8 +329,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onLegendClick(idx: number): void {
-    // @ts-ignore
-    this.series[idx].visible = this.series[idx].visible === undefined ? false : !this.series[idx].visible;
+    this.updateHiddenMetrics(this.series[idx].target);
     this.render();
   }
 
@@ -362,6 +363,18 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       if(_.includes(variableNames, serie.target)) {
         // @ts-ignore
         serie.confidence = this.panel.confidence;
+      }
+    });
+  }
+
+  getVisibleForSeries(): void {
+    this.series.forEach(serie => {
+      if(_.includes(this.hiddenMetrics, serie.target)) {
+        // @ts-ignore
+        serie.visible = false;
+      } else {
+        // @ts-ignore
+        serie.visible = true;
       }
     });
   }
@@ -532,6 +545,25 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
     const timestampInterval = this.series[0].datapoints[1][1] - this.series[0].datapoints[0][1];
     return timestampInterval / MILLISECONDS_IN_MINUTE;
+  }
+
+  get hiddenMetrics(): string[] {
+    return this.panel.hiddenMetrics;
+  }
+
+  set hiddenMetrics(metricNames: string[]) {
+    this.panel.hiddenMetrics = metricNames;
+  }
+
+  updateHiddenMetrics(metricName: string) {
+    const isIncluded = _.includes(this.hiddenMetrics, metricName);
+    let metricList = this.hiddenMetrics;
+    if(isIncluded === true) {
+      this.hiddenMetrics = metricList.filter(e => e !== metricName)
+    } else {
+      metricList.push(metricName)
+      this.hiddenMetrics = metricList;
+    }
   }
 }
 
