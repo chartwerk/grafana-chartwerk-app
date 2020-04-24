@@ -1,26 +1,5 @@
 <div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Confidence interval </label>
-  <input
-    type="number"
-    class="gf-form-input width-12"
-    ng-min="0"
-    ng-model="ctrl.confidence"
-    ng-blur="ctrl.onConfigChange()"
-  >
-</div>
-
-<div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Metric name </label>
-  <input
-    type="text"
-    class="gf-form-input width-12"
-    ng-model="ctrl.override"
-    ng-blur="ctrl.onConfigChange()"
-  >
-</div>
-
-<div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Upper bound </label>
+  <label class="gf-form-label query-keyword width-12"> Upper bound format</label>
   <input
     type="text"
     class="gf-form-input width-12"
@@ -30,11 +9,22 @@
 </div>
 
 <div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Lower bound </label>
+  <label class="gf-form-label query-keyword width-12"> Lower bound format</label>
   <input
     type="text"
     class="gf-form-input width-12"
     ng-model="ctrl.lowerBound"
     ng-blur="ctrl.onConfigChange()"
   >
+</div>
+
+<div class="gf-form" ng-if="ctrl.visualization === 'line'">
+  <label class="gf-form-label query-keyword width-12"> Mode </label>
+  <div class="gf-form-select-wrapper">
+    <select class="gf-form-input width-12"
+      ng-model="ctrl.lineMode"
+      ng-options="mode for mode in ctrl.mode"
+      ng-change="ctrl.onConfigChange()"
+    />
+  </div>
 </div>
