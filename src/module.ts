@@ -14,6 +14,7 @@ import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
 import { VariableSrv } from 'grafana/app/features/templating/variable_srv';
 import { QueryVariable } from 'grafana/app/features/templating/query_variable';
+import { appEvents } from 'grafana/app/core/core';
 
 import { TimeSeries, PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone } from '@grafana/data';
 import { colors } from '@grafana/ui';
@@ -42,6 +43,11 @@ enum Visualization {
   BAR = 'bar'
 }
 
+enum Mode {
+  STANDART = 'Standart',
+  CHARGE = 'Charge'
+}
+
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
 } else {
@@ -67,6 +73,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     timeInterval: undefined,
     override: '',
     visualization: Visualization.LINE,
+    lineMode: Mode.STANDART,
     upperBound: '',
     lowerBound: '',
     hiddenMetrics: [],
@@ -76,8 +83,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   ticksOrientation = _.map(TickOrientation, (name: string) => name);
   timeRangeSources = _.map(TimeRangeSource, (name: string) => name);
   visualizationTypes = _.map(Visualization, (name: string) => name);
+  mode = _.map(Mode, (name: string) => name);
 
   chartContainer?: HTMLElement;
+  chart: any;
 
   displayedVariables: { [name: string]: { displayed: boolean, label?: string } } = {};
   series: TimeSeries[] = [];
@@ -94,7 +103,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     _.defaults(this.panel, this.panelDefaults);
 
     this.events.on(PanelEvents.editModeInitialized, this.onInitEditMode.bind(this));
-    this.dashboard.events.on('time-range-updated', this.onDashboardTimeRangeChange.bind(this))
+    this.dashboard.events.on('time-range-updated', this.onDashboardTimeRangeChange.bind(this));
+
+    appEvents.on('graph-hover', this._onGraphHover.bind(this));
+    appEvents.on('graph-hover-clear', this._onGraphHoverClear.bind(this));
 
     this.updateVariables();
     this.initTimeRange();
@@ -178,11 +190,44 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   // TODO: event type from lib
   onChartHover(evt: any): void {
+    // TODO: panel 
     this.tooltip.show({ pageX: evt.x, pageY: evt.y }, { time: evt.time, series: evt.series });
+    if(this.isTimePickerLocked === true) {
+      const pos = {
+        ctrlKey: false,
+        metaKey: false,
+        pageX: evt.x,
+        pageY: evt.y,
+        panelRelY: 0.11,
+        x: evt.time,
+        x1: evt.time,
+        y: evt.y,
+        y1: evt.y
+      }
+      let graphEvt = { panel: this.panel, pos };
+      appEvents.emit('graph-hover', graphEvt);
+    }
   }
 
   onChartLeave(): void {
     this.tooltip.clear();
+    if(this.isTimePickerLocked === true) {
+      appEvents.emit('graph-hover-clear');
+    }
+  }
+
+  _onGraphHover(evt) {
+    // TODO: use watcher instead of public method
+    if(this.chart.renderSharedCrosshair !== undefined && this.isTimePickerLocked === true && this.panel.id !== evt.panel.id) {
+      this.chart.renderSharedCrosshair(evt.pos.x);
+    }
+  }
+
+  _onGraphHoverClear() {
+    // TODO: use watcher instead of public method
+    if(this.chart.hideSharedCrosshair !== undefined && this.isTimePickerLocked === true) {
+      this.chart.hideSharedCrosshair();
+    }
   }
 
   onInitEditMode(): void {
@@ -195,23 +240,40 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onRender(): void {
+    this.filterSeries();
     this.updateVariables();
-    this.getConfidenceForSeries();
+    this.updateSeriesVariables();
     this.getVisibleForSeries();
 
     switch(this.visualization) {
       case Visualization.LINE:
-        new ChartwerkLineChart(this.chartContainer, this.series as any, this.chartOptions);
+        this.chart = new ChartwerkLineChart(this.chartContainer, this.series as any, this.chartOptions);
         break;
 
       case Visualization.BAR:
-        new ChartwerkBarChart(this.chartContainer, this.series as any, this.chartOptions);
+        this.chart = new ChartwerkBarChart(this.chartContainer, this.series as any, this.chartOptions);
         break;
 
       default:
         throw new Error(`Uknown visualization type: ${this.visualization}`);
         break;
     }
+  }
+
+  filterSeries(): void {
+    this.series.forEach(serie => {
+      const timestamps = _.map(serie.datapoints, item => item[1]);
+      const uniqTimestamps = _.uniq(timestamps);
+      if(timestamps.length === uniqTimestamps.length) {
+        return;
+      }
+      let datapointsWithUniqTimestamps = [];
+      uniqTimestamps.forEach(timestamp => {
+        const idx = timestamps.indexOf(timestamp);
+        datapointsWithUniqTimestamps.push(serie.datapoints[idx]);
+      });
+      serie.datapoints = datapointsWithUniqTimestamps;
+    });
   }
 
   getVariableByName(variableName: string): QueryVariable {
@@ -347,24 +409,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.initTimeRange();
   }
 
-  getConfidenceForSeries(): void {
+  updateSeriesVariables(): void {
     // TODO: use TimeSeries type from line-chart
     // @ts-ignore
     this.series.forEach(serie => { serie.confidence = 0 });
-
-    // TODO: support multiple overrides and not only variables
-    const variable = this.getVariableByName(this.panel.override.substr(1));
-    if(variable === undefined || variable.options === undefined) {
-      return;
-    }
-    let variableNames = variable.options.filter(option => option.selected);
-    variableNames = variableNames.map(name => name.value);
-    this.series.forEach(serie => {
-      if(_.includes(variableNames, serie.target)) {
-        // @ts-ignore
-        serie.confidence = this.panel.confidence;
-      }
-    });
+    // @ts-ignore
+    this.series.forEach(serie => { serie.mode = this.panel.lineMode });
   }
 
   getVisibleForSeries(): void {
@@ -401,6 +451,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       upper: this.upperBound,
       lower: this.lowerBound
     }
+    // @ts-ignore
+    const timeRange = { from: this.timeRangeOverride.from._i, to: this.timeRangeOverride.to._i }
     const options = {
       colors,
       eventsCallbacks,
@@ -408,7 +460,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       tickFormat,
       labelFormat,
       confidence: this.confidence,
-      bounds
+      bounds,
+      timeRange
     };
     return options;
   }
@@ -424,13 +477,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       }
     }
     return false;
-  }
-
-  get containerStyle(): { height: string } {
-    if(this.shouldDisplayVariables === true) {
-      return { height: '90%' };
-    }
-    return { height: '100%' };
   }
 
   get xAxisOrientation(): TickOrientation {
@@ -553,6 +599,14 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set hiddenMetrics(metricNames: string[]) {
     this.panel.hiddenMetrics = metricNames;
+  }
+
+  get lineMode(): Mode {
+    return this.panel.lineMode; 
+  }
+
+  set lineMode(mode: Mode) {
+    this.panel.lineMode = mode;
   }
 
   updateHiddenMetrics(metricName: string) {
