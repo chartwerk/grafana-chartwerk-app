@@ -269,8 +269,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.series.forEach(serie => {
       const timestamps = _.map(serie.datapoints, item => item[1]);
       let uniqTimestamps: number[] = [];
-      if(!isArraySortedAscending(timestamps)) {
-        this.warning = 'WARNING datasource returned unsorted dataset, performance can go down';
+
+      const isSorted = isArraySortedAscending(timestamps);
+      if(!isSorted) {
+        this.warning = 'WARNING: datasource returned unsorted dataset, performance can go down';
         uniqTimestamps = _.uniq(timestamps);
       } else {
         uniqTimestamps = _.sortedUniq(timestamps);
@@ -279,10 +281,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       if(timestamps.length === uniqTimestamps.length) {
         return;
       }
-      this.warning = 'WARNING: There are multiple datapoints for each timestamp. Rendering only the first ones.';
+      this.warning = 'WARNING: there are multiple data points with same timestamp, rendered only one of these';
       let datapointsWithUniqTimestamps = [];
       uniqTimestamps.forEach(timestamp => {
-        const idx = _.sortedIndexOf(timestamps, timestamp);
+        let idx = 0;
+        if(!isSorted) {
+          idx = _.sortedIndexOf(timestamps, timestamp);
+        } else {
+          idx = _.indexOf(timestamps, timestamp);
+        }
         datapointsWithUniqTimestamps.push(serie.datapoints[idx]);
       });
       serie.datapoints = datapointsWithUniqTimestamps;
