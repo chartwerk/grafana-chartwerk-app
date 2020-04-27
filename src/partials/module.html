@@ -23,3 +23,11 @@
   </button>
 </div>
 <div class="chartwerk-container"></div>
+<div class="chartwerk-warning" ng-show="ctrl.panelWarningsDisplayed && ctrl.wargingDisplayed">
+  <i
+    class="grafana-tip fa fa-exclamation-triangle ng-scope"
+    bs-tooltip="'WARNING: There are multiple datapoints for each timestamp. Rendering only the first ones.'"
+    data-original-title=""
+    title="">
+  </i>
+</div>

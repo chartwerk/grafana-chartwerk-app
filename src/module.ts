@@ -44,7 +44,7 @@ enum Visualization {
 }
 
 enum Mode {
-  STANDART = 'Standart',
+  STANDARD = 'Standard',
   CHARGE = 'Charge'
 }
 
@@ -73,7 +73,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     timeInterval: undefined,
     override: '',
     visualization: Visualization.LINE,
-    lineMode: Mode.STANDART,
+    lineMode: Mode.STANDARD,
+    warningsDisplayed: false,
     upperBound: '',
     lowerBound: '',
     hiddenMetrics: [],
@@ -84,6 +85,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   timeRangeSources = _.map(TimeRangeSource, (name: string) => name);
   visualizationTypes = _.map(Visualization, (name: string) => name);
   mode = _.map(Mode, (name: string) => name);
+  isWarningDisplayed = false;
 
   chartContainer?: HTMLElement;
   chart: any;
@@ -267,6 +269,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       if(timestamps.length === uniqTimestamps.length) {
         return;
       }
+      this.wargingDisplayed = true;
       let datapointsWithUniqTimestamps = [];
       uniqTimestamps.forEach(timestamp => {
         const idx = timestamps.indexOf(timestamp);
@@ -607,6 +610,22 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set lineMode(mode: Mode) {
     this.panel.lineMode = mode;
+  }
+
+  get wargingDisplayed(): boolean {
+    return this.isWarningDisplayed;
+  }
+
+  set wargingDisplayed(isDisplayed: boolean) {
+    this.isWarningDisplayed = isDisplayed;
+  }
+
+  get panelWarningsDisplayed(): boolean {
+    return this.panel.wargingsDisplayed;
+  }
+
+  set panelWarningsDisplayed(displayed: boolean) {
+    this.panel.wargingsDisplayed = displayed;
   }
 
   updateHiddenMetrics(metricName: string) {
