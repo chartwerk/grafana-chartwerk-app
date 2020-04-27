@@ -242,6 +242,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onRender(): void {
+    this.warningDisplayed = false;
     this.filterSeries();
     this.updateVariables();
     this.updateSeriesVariables();
@@ -265,14 +266,14 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   filterSeries(): void {
     this.series.forEach(serie => {
       const timestamps = _.map(serie.datapoints, item => item[1]);
-      const uniqTimestamps = _.uniq(timestamps);
+      const uniqTimestamps = _.sortedUniq(timestamps);
       if(timestamps.length === uniqTimestamps.length) {
         return;
       }
-      this.wargingDisplayed = true;
+      this.warningDisplayed = true;
       let datapointsWithUniqTimestamps = [];
       uniqTimestamps.forEach(timestamp => {
-        const idx = timestamps.indexOf(timestamp);
+        const idx = _.sortedIndexOf(timestamps, timestamp);
         datapointsWithUniqTimestamps.push(serie.datapoints[idx]);
       });
       serie.datapoints = datapointsWithUniqTimestamps;
@@ -612,20 +613,20 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.lineMode = mode;
   }
 
-  get wargingDisplayed(): boolean {
+  get warningDisplayed(): boolean {
     return this.isWarningDisplayed;
   }
 
-  set wargingDisplayed(isDisplayed: boolean) {
+  set warningDisplayed(isDisplayed: boolean) {
     this.isWarningDisplayed = isDisplayed;
   }
 
   get panelWarningsDisplayed(): boolean {
-    return this.panel.wargingsDisplayed;
+    return this.panel.warningsDisplayed;
   }
 
   set panelWarningsDisplayed(displayed: boolean) {
-    this.panel.wargingsDisplayed = displayed;
+    this.panel.warningsDisplayed = displayed;
   }
 
   updateHiddenMetrics(metricName: string) {
