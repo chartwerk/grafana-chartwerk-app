@@ -242,6 +242,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onRender(): void {
+    this.wargingDisplayed = false;
     this.filterSeries();
     this.updateVariables();
     this.updateSeriesVariables();
