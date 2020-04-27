@@ -7,6 +7,8 @@ import './timepicker';
 
 import { GraphTooltip } from './graph_tooltip';
 
+import { isArraySortedAscending } from './utils';
+
 import { ChartwerkBarChart } from '@chartwerk/bar-chart';
 import { ChartwerkLineChart } from '@chartwerk/line-chart';
 
@@ -74,7 +76,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     override: '',
     visualization: Visualization.LINE,
     lineMode: Mode.STANDARD,
-    warningsDisplayed: false,
+    displayWarnings: false,
     upperBound: '',
     lowerBound: '',
     hiddenMetrics: [],
@@ -85,7 +87,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   timeRangeSources = _.map(TimeRangeSource, (name: string) => name);
   visualizationTypes = _.map(Visualization, (name: string) => name);
   mode = _.map(Mode, (name: string) => name);
-  isWarningDisplayed = false;
+  warning = '';
 
   chartContainer?: HTMLElement;
   chart: any;
@@ -192,7 +194,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   // TODO: event type from lib
   onChartHover(evt: any): void {
-    // TODO: panel 
+    // TODO: panel
     this.tooltip.show({ pageX: evt.x, pageY: evt.y }, { time: evt.time, series: evt.series });
     if(this.isTimePickerLocked === true) {
       const pos = {
@@ -242,7 +244,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onRender(): void {
-    this.warningDisplayed = false;
+    this.warning = '';
+
     this.filterSeries();
     this.updateVariables();
     this.updateSeriesVariables();
@@ -259,18 +262,24 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
       default:
         throw new Error(`Uknown visualization type: ${this.visualization}`);
-        break;
     }
   }
 
   filterSeries(): void {
     this.series.forEach(serie => {
       const timestamps = _.map(serie.datapoints, item => item[1]);
-      const uniqTimestamps = _.sortedUniq(timestamps);
+      let uniqTimestamps: number[] = [];
+      if(!isArraySortedAscending(timestamps)) {
+        this.warning = 'WARNING datasource returned unsorted dataset, performance can go down';
+        uniqTimestamps = _.uniq(timestamps);
+      } else {
+        uniqTimestamps = _.sortedUniq(timestamps);
+      }
+
       if(timestamps.length === uniqTimestamps.length) {
         return;
       }
-      this.warningDisplayed = true;
+      this.warning = 'WARNING: There are multiple datapoints for each timestamp. Rendering only the first ones.';
       let datapointsWithUniqTimestamps = [];
       uniqTimestamps.forEach(timestamp => {
         const idx = _.sortedIndexOf(timestamps, timestamp);
@@ -606,27 +615,19 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   get lineMode(): Mode {
-    return this.panel.lineMode; 
+    return this.panel.lineMode;
   }
 
   set lineMode(mode: Mode) {
     this.panel.lineMode = mode;
   }
 
-  get warningDisplayed(): boolean {
-    return this.isWarningDisplayed;
+  get shouldDisplayWarnings(): boolean {
+    return this.panel.displayWarnings;
   }
 
-  set warningDisplayed(isDisplayed: boolean) {
-    this.isWarningDisplayed = isDisplayed;
-  }
-
-  get panelWarningsDisplayed(): boolean {
-    return this.panel.warningsDisplayed;
-  }
-
-  set panelWarningsDisplayed(displayed: boolean) {
-    this.panel.warningsDisplayed = displayed;
+  set shouldDisplayWarnings(displayed: boolean) {
+    this.panel.displayWarnings = displayed;
   }
 
   updateHiddenMetrics(metricName: string) {
