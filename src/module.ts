@@ -273,7 +273,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       this.wargingDisplayed = true;
       let datapointsWithUniqTimestamps = [];
       uniqTimestamps.forEach(timestamp => {
-        const idx = timestamps.indexOf(timestamp);
+        const idx = _.sortedIndexOf(timestamps, timestamp);
         datapointsWithUniqTimestamps.push(serie.datapoints[idx]);
       });
       serie.datapoints = datapointsWithUniqTimestamps;
