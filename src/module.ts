@@ -267,6 +267,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   filterSeries(): void {
     this.series.forEach(serie => {
+      if(serie.datapoints === undefined) {
+        return;
+      }
       const timestamps = _.map(serie.datapoints, item => item[1]);
       let uniqTimestamps: number[] = [];
 
