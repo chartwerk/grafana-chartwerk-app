@@ -13,6 +13,3 @@
 - confidence interval
 - customizable X-axis labels
 - customizable grid interval
-
-## Based on
-* https://github.com/CorpGlory/grafana-plugin-template-webpack
