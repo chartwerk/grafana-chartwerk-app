@@ -220,18 +220,23 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
   }
 
-  _onGraphHover(evt) {
-    // TODO: use watcher instead of public method
-    if(this.chart.renderSharedCrosshair !== undefined && this.isTimePickerLocked === true && this.panel.id !== evt.panel.id) {
-      this.chart.renderSharedCrosshair(evt.pos.x);
+  _onGraphHover(evt): void {
+    if(
+      this.chart === undefined || this.chart.renderSharedCrosshair === undefined ||
+      this.isTimePickerLocked === false || this.panel.id === evt.panel.id
+    ) {
+      return;
     }
+    // TODO: use watcher instead of public method
+    this.chart.renderSharedCrosshair(evt.pos.x);
   }
 
   _onGraphHoverClear() {
-    // TODO: use watcher instead of public method
-    if(this.chart.hideSharedCrosshair !== undefined && this.isTimePickerLocked === true) {
-      this.chart.hideSharedCrosshair();
+    if(this.chart === undefined || this.chart.hideSharedCrosshair === undefined || this.isTimePickerLocked === false) {
+      return;
     }
+    // TODO: use watcher instead of public method
+    this.chart.hideSharedCrosshair();
   }
 
   onInitEditMode(): void {
@@ -244,9 +249,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onRender(): void {
-    this.warning = '';
-
-    this.filterSeries();
     this.updateVariables();
     this.updateSeriesVariables();
     this.getVisibleForSeries();
@@ -270,33 +272,40 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       if(serie.datapoints === undefined) {
         return;
       }
-      const timestamps = _.map(serie.datapoints, item => item[1]);
+      const filteredDatapoints = _.filter(serie.datapoints, item => item !== undefined);
+      if(filteredDatapoints.length !== serie.datapoints.length) {
+        this.addMessageToWarning('WARNING: datasource returned dataset with undefined datapoints, skip these datapoints.');
+        serie.datapoints = filteredDatapoints;
+      }
+      let timestamps = _.map(serie.datapoints, item => item[1]);
       let uniqTimestamps: number[] = [];
 
       const isSorted = isArraySortedAscending(timestamps);
       if(!isSorted) {
-        this.warning = 'WARNING: datasource returned unsorted dataset, performance can go down';
-        uniqTimestamps = _.uniq(timestamps);
-      } else {
-        uniqTimestamps = _.sortedUniq(timestamps);
+        this.addMessageToWarning('WARNING: datasource returned unsorted dataset, performance can go down.<br/> You can add sort by time to the query to fix it.');
+        serie.datapoints = _.sortBy(serie.datapoints, item => item[1]);
+        timestamps = _.map(serie.datapoints, item => item[1]);
       }
+      uniqTimestamps = _.sortedUniq(timestamps);
 
       if(timestamps.length === uniqTimestamps.length) {
         return;
       }
-      this.warning = 'WARNING: there are multiple data points with same timestamp, rendered only one of these';
+      this.addMessageToWarning('WARNING: there are multiple data points with same timestamp, rendered only one of these.');
       let datapointsWithUniqTimestamps = [];
       uniqTimestamps.forEach(timestamp => {
-        let idx = 0;
-        if(!isSorted) {
-          idx = _.sortedIndexOf(timestamps, timestamp);
-        } else {
-          idx = _.indexOf(timestamps, timestamp);
-        }
+        const idx = _.sortedIndexOf(timestamps, timestamp);
         datapointsWithUniqTimestamps.push(serie.datapoints[idx]);
       });
       serie.datapoints = datapointsWithUniqTimestamps;
     });
+  }
+
+  addMessageToWarning(message: string): void {
+    if(this.warning.indexOf(message) !== -1) {
+      return;
+    }
+    this.warning += message + '<br/>';
   }
 
   getVariableByName(variableName: string): QueryVariable {
@@ -304,7 +313,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onDataReceived(series: TimeSeries[]): void {
+    this.warning = '';
+
     this.series = series;
+    this.filterSeries();
     this.render();
   }
 
