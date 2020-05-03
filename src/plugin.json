@@ -1,17 +1,16 @@
 {
   "type": "panel",
-  "name": "Chartwerk Panel",
+  "name": "Chartwerk",
   "id": "corpglory-chartwerk-panel",
   "info": {
-    "description": "Chartwerk Panel",
+    "description": "Chartwerk",
     "author": {
-      "name": "CorpGlory",
-      "url": "corpglory.com"
+      "name": "CorpGlory Inc.",
+      "url": "chartwerk.io"
     },
     "keywords": [ ],
     "logos": {
-      "small": "assets/logo.png",
-      "large": "assets/logo.png"
+      "small": "assets/logo.svg"
     },
     "links": [ ],
     "screenshots": [{
