@@ -8,3 +8,24 @@
     />
   </div>
 </div>
+
+<div class="gf-form" ng-if="ctrl.visualization === 'line'">
+  <label class="gf-form-label query-keyword width-12"> Mode </label>
+  <div class="gf-form-select-wrapper">
+    <select class="gf-form-input width-12"
+      ng-model="ctrl.lineMode"
+      ng-options="mode for mode in ctrl.mode"
+      ng-change="ctrl.onConfigChange()"
+    />
+  </div>
+</div>
+
+<div class="gf-form">
+  <gf-form-switch
+    class="gf-form"
+    label="Display warnings"
+    label-class="query-keyword width-12"
+    checked="ctrl.shouldDisplayWarnings"
+  />
+</div>
+

@@ -1,15 +1,9 @@
-<div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Upper bound format</label>
-  <input
-    type="text"
-    class="gf-form-input width-12"
-    ng-model="ctrl.upperBound"
-    ng-blur="ctrl.onConfigChange()"
-  >
-</div>
 
 <div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Lower bound format</label>
+  <label class="gf-form-label query-keyword width-14">
+    <i class="fa fa-info" bs-tooltip="'Specifies which metric is upper bound.$__metric_name macro can be used here. It will be replaced with each metric name to find it\'s bound<br/>For example: \'$__metric_name lower_bound\' - lower bound for \'foo\' metric will be taken from \'foo lower_bound\' metric'"></i>
+    &nbsp;Lower bound metric name
+  </label>
   <input
     type="text"
     class="gf-form-input width-12"
@@ -18,8 +12,21 @@
   >
 </div>
 
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-14">
+    <i class="fa fa-info" bs-tooltip="'Specifies which metric is upper bound.$__metric_name macro can be used here. It will be replaced with each metric name to find it\'s bound<br/>For example: \'$__metric_name upper_bound\' - upper bound for \'foo\' metric will be taken from \'foo upper_bound\' metric'"></i>
+    &nbsp;Upper bound metric name
+  </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.upperBound"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
 <div class="gf-form" ng-if="ctrl.visualization === 'line'">
-  <label class="gf-form-label query-keyword width-12"> Mode </label>
+  <label class="gf-form-label query-keyword width-14"> Mode </label>
   <div class="gf-form-select-wrapper">
     <select class="gf-form-input width-12"
       ng-model="ctrl.lineMode"
@@ -32,6 +39,6 @@
 <gf-form-switch
   class="gf-form"
   label="Display warnings"
-  label-class="query-keyword width-12"
+  label-class="query-keyword width-14"
   checked="ctrl.shouldDisplayWarnings"
 />
