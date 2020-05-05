@@ -1,0 +1,38 @@
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-14">
+    <i
+      class="fa fa-info"
+      bs-tooltip="'
+        Specifies which metric is lower bound.<br/>
+        $__metric_name macro can be used here. It will be replaced with each metric name to find it\'s bound.<br/>
+        For example: \'$__metric_name lower_bound\' - lower bound for \'foo\' metric will be taken from \'foo lower_bound\' metric if it exists.
+      '"
+    />
+    &nbsp;Lower bound metric name
+  </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.lowerBound"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-14">
+    <i class="fa fa-info"
+      bs-tooltip="'
+        Specifies which metric is upper bound.<br/>
+        $__metric_name macro can be used here. It will be replaced with each metric name to find it\'s bound.<br/>
+        For example: \'$__metric_name upper_bound\' - upper bound for \'foo\' metric will be taken from \'foo upper_bound\' metric if it exists.
+      '"
+    />
+    &nbsp;Upper bound metric name
+  </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.upperBound"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>

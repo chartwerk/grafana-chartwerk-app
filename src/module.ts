@@ -243,7 +243,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.addEditorTab('Visualization', `${PARTIALS_PATH}/tab_visualization.html`, 2);
     this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
     if(this.visualization === Visualization.LINE) {
-      this.addEditorTab('Metrics', `${PARTIALS_PATH}/tab_metrics.html`, 4);
+      this.addEditorTab('Confidence', `${PARTIALS_PATH}/tab_confidence.html`, 4);
     }
     this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 5);
   }
