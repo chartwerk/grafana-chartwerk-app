@@ -473,7 +473,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       mouseOut: this.onChartLeave.bind(this),
       onLegendClick: this.onLegendClick.bind(this)
     }
-    const timeInterval = this.timeInterval || this.seriesTimeStep;
+    const timeInterval = {
+      count: this.timeInterval || this.seriesTimeStep
+    }
+    const renderTicksfromTimestamps = false;
     const tickFormat = {
       xAxis: this.xAxisTickFormat,
       xTickOrientation: this.xAxisOrientation
@@ -493,6 +496,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       eventsCallbacks,
       timeInterval,
       tickFormat,
+      renderTicksfromTimestamps,
       labelFormat,
       confidence: this.confidence,
       bounds,
