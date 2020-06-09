@@ -9,8 +9,8 @@ import { GraphTooltip } from './graph_tooltip';
 
 import { isArraySortedAscending } from './utils';
 
-import { ChartwerkBarChart } from '@chartwerk/bar-chart';
-import { ChartwerkLineChart } from '@chartwerk/line-chart';
+import { ChartwerkBarChart, BarOptions, BarTimeSerie } from '@chartwerk/bar-chart';
+import { ChartwerkLineChart, LineOptions, LineTimeSerie } from '@chartwerk/line-chart';
 
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
@@ -40,15 +40,19 @@ enum TimeRangeSource {
   PANEL = 'panel'
 }
 
-enum Pod {
+enum Visualization {
   LINE = 'line',
   BAR = 'bar'
 }
 
+// TODO: use enum from lib
 enum Mode {
   STANDARD = 'Standard',
   CHARGE = 'Charge'
 }
+
+type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
+type ChartwerkOptions = BarOptions | LineOptions;
 
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
@@ -74,7 +78,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     confidence: 0,
     timeInterval: undefined,
     override: '',
-    pod: Pod.LINE,
+    visualization: Visualization.LINE,
     lineMode: Mode.STANDARD,
     displayWarnings: false,
     upperBound: '',
@@ -85,7 +89,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   tooltip?: GraphTooltip;
   ticksOrientation = _.map(TickOrientation, (name: string) => name);
   timeRangeSources = _.map(TimeRangeSource, (name: string) => name);
-  podTypes = _.map(Pod, (name: string) => name);
+  visualizationTypes = _.map(Visualization, (name: string) => name);
   mode = _.map(Mode, (name: string) => name);
   warning = '';
 
@@ -93,7 +97,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   chart: any;
 
   displayedVariables: { [name: string]: { displayed: boolean, label?: string } } = {};
-  series: TimeSeries[] = [];
+  series: ChartwerkTimeSerie[] = [];
 
   /** @ngInject */
   constructor(
@@ -103,7 +107,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     public variableSrv: VariableSrv
   ) {
     super($scope, $injector);
-
     _.defaults(this.panel, this.panelDefaults);
 
     this.events.on(PanelEvents.editModeInitialized, this.onInitEditMode.bind(this));
@@ -242,7 +245,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   onInitEditMode(): void {
     this.addEditorTab('Visualization', `${PARTIALS_PATH}/tab_visualization.html`, 2);
     this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
-    if(this.pod === Pod.LINE) {
+    if(this.visualization === Visualization.LINE) {
       this.addEditorTab('Confidence', `${PARTIALS_PATH}/tab_confidence.html`, 4);
     }
     this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 5);
@@ -253,17 +256,19 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.updateSeriesVariables();
     this.getVisibleForSeries();
 
-    switch(this.pod) {
-      case Pod.LINE:
-        this.chart = new ChartwerkLineChart(this.chartContainer, this.series as any, this.chartOptions);
+    switch(this.visualization) {
+      case Visualization.LINE:
+        this.chart = new ChartwerkLineChart(this.chartContainer, this.series, this.chartOptions);
+        this.chart.render();
         break;
 
-      case Pod.BAR:
-        this.chart = new ChartwerkBarChart(this.chartContainer, this.series as any, this.chartOptions);
+      case Visualization.BAR:
+        this.chart = new ChartwerkBarChart(this.chartContainer, this.series, this.chartOptions);
+        this.chart.render();
         break;
 
       default:
-        throw new Error(`Uknown pod type: ${this.pod}`);
+        throw new Error(`Uknown visualization type: ${this.visualization}`);
     }
   }
 
@@ -445,27 +450,20 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   updateSeriesVariables(): void {
-    // TODO: use TimeSeries type from line-chart
-    // @ts-ignore
-    this.series.forEach(serie => { serie.confidence = 0 });
-    // @ts-ignore
     this.series.forEach(serie => { serie.mode = this.panel.lineMode });
   }
 
   getVisibleForSeries(): void {
     this.series.forEach(serie => {
       if(_.includes(this.hiddenMetrics, serie.target)) {
-        // @ts-ignore
         serie.visible = false;
       } else {
-        // @ts-ignore
         serie.visible = true;
       }
     });
   }
 
-  // TODO: type from lib
-  get chartOptions(): any {
+  get chartOptions(): ChartwerkOptions {
     const eventsCallbacks = {
       zoomIn: this.onZoomIn.bind(this),
       zoomOut: this.onZoomOut.bind(this),
@@ -615,12 +613,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.lowerBound = alias;
   }
 
-  get pod(): Pod {
-    return this.panel.pod;
+  get visualization(): Visualization {
+    return this.panel.visualization;
   }
 
-  set pod(value: Pod) {
-    this.panel.pod = value;
+  set visualization(alias: Visualization) {
+    this.panel.visualization = alias;
   }
 
   // TODO: not "| undefined"
