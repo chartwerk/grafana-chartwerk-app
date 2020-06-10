@@ -40,7 +40,7 @@ enum TimeRangeSource {
   PANEL = 'panel'
 }
 
-enum Visualization {
+enum Pod {
   LINE = 'line',
   BAR = 'bar'
 }
@@ -78,7 +78,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     confidence: 0,
     timeInterval: undefined,
     override: '',
-    visualization: Visualization.LINE,
+    pod: Pod.LINE,
     lineMode: Mode.STANDARD,
     displayWarnings: false,
     upperBound: '',
@@ -89,7 +89,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   tooltip?: GraphTooltip;
   ticksOrientation = _.map(TickOrientation, (name: string) => name);
   timeRangeSources = _.map(TimeRangeSource, (name: string) => name);
-  visualizationTypes = _.map(Visualization, (name: string) => name);
+  podTypes = _.map(Pod, (name: string) => name);
   mode = _.map(Mode, (name: string) => name);
   warning = '';
 
@@ -245,7 +245,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   onInitEditMode(): void {
     this.addEditorTab('Visualization', `${PARTIALS_PATH}/tab_visualization.html`, 2);
     this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
-    if(this.visualization === Visualization.LINE) {
+    if(this.pod === Pod.LINE) {
       this.addEditorTab('Confidence', `${PARTIALS_PATH}/tab_confidence.html`, 4);
     }
     this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 5);
@@ -256,19 +256,19 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.updateSeriesVariables();
     this.getVisibleForSeries();
 
-    switch(this.visualization) {
-      case Visualization.LINE:
-        this.chart = new ChartwerkLineChart(this.chartContainer, this.series, this.chartOptions);
+    switch(this.pod) {
+      case Pod.LINE:
+        this.chart = new ChartwerkLineChart(this.chartContainer, this.series as any, this.chartOptions);
         this.chart.render();
         break;
 
-      case Visualization.BAR:
-        this.chart = new ChartwerkBarChart(this.chartContainer, this.series, this.chartOptions);
+      case Pod.BAR:
+        this.chart = new ChartwerkBarChart(this.chartContainer, this.series as any, this.chartOptions);
         this.chart.render();
         break;
 
       default:
-        throw new Error(`Uknown visualization type: ${this.visualization}`);
+        throw new Error(`Uknown pod type: ${this.pod}`);
     }
   }
 
@@ -613,12 +613,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.lowerBound = alias;
   }
 
-  get visualization(): Visualization {
-    return this.panel.visualization;
+  get pod(): Pod {
+    return this.panel.pod;
   }
 
-  set visualization(alias: Visualization) {
-    this.panel.visualization = alias;
+  set pod(value: Pod) {
+    this.panel.pod = value;
   }
 
   // TODO: not "| undefined"
