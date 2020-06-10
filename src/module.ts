@@ -9,8 +9,8 @@ import { GraphTooltip } from './graph_tooltip';
 
 import { isArraySortedAscending } from './utils';
 
-import { ChartwerkBarChart } from '@chartwerk/bar-chart';
-import { ChartwerkLineChart } from '@chartwerk/line-chart';
+import { ChartwerkBarChart, BarOptions, BarTimeSerie } from '@chartwerk/bar-chart';
+import { ChartwerkLineChart, LineOptions, LineTimeSerie } from '@chartwerk/line-chart';
 
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
@@ -45,10 +45,14 @@ enum Pod {
   BAR = 'bar'
 }
 
+// TODO: use enum from lib
 enum Mode {
   STANDARD = 'Standard',
   CHARGE = 'Charge'
 }
+
+type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
+type ChartwerkOptions = BarOptions | LineOptions;
 
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
@@ -93,7 +97,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   chart: any;
 
   displayedVariables: { [name: string]: { displayed: boolean, label?: string } } = {};
-  series: TimeSeries[] = [];
+  series: ChartwerkTimeSerie[] = [];
 
   /** @ngInject */
   constructor(
@@ -103,7 +107,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     public variableSrv: VariableSrv
   ) {
     super($scope, $injector);
-
     _.defaults(this.panel, this.panelDefaults);
 
     this.events.on(PanelEvents.editModeInitialized, this.onInitEditMode.bind(this));
@@ -256,10 +259,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     switch(this.pod) {
       case Pod.LINE:
         this.chart = new ChartwerkLineChart(this.chartContainer, this.series as any, this.chartOptions);
+        this.chart.render();
         break;
 
       case Pod.BAR:
         this.chart = new ChartwerkBarChart(this.chartContainer, this.series as any, this.chartOptions);
+        this.chart.render();
         break;
 
       default:
@@ -445,27 +450,20 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   updateSeriesVariables(): void {
-    // TODO: use TimeSeries type from line-chart
-    // @ts-ignore
-    this.series.forEach(serie => { serie.confidence = 0 });
-    // @ts-ignore
     this.series.forEach(serie => { serie.mode = this.panel.lineMode });
   }
 
   getVisibleForSeries(): void {
     this.series.forEach(serie => {
       if(_.includes(this.hiddenMetrics, serie.target)) {
-        // @ts-ignore
         serie.visible = false;
       } else {
-        // @ts-ignore
         serie.visible = true;
       }
     });
   }
 
-  // TODO: type from lib
-  get chartOptions(): any {
+  get chartOptions(): ChartwerkOptions {
     const eventsCallbacks = {
       zoomIn: this.onZoomIn.bind(this),
       zoomOut: this.onZoomOut.bind(this),
