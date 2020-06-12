@@ -1,9 +1,9 @@
 import { react2AngularDirective } from './react2angular';
 
-import { TimeRangePicker } from '@grafana/ui';
+import { TimePicker } from '@grafana/ui';
 
 
-react2AngularDirective('timepicker', TimeRangePicker, [
+react2AngularDirective('timepicker', TimePicker, [
   // TODO: there are more props
   'value',
   'onChange',

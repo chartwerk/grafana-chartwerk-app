@@ -67,7 +67,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   panelDefaults = {
     displayedVariablesNames: [],
     xAxisOrientation: TickOrientation.HORIZONTAL,
-    xAxisTickFormat: '%Y-%m-%d %H:%M',
+    xAxisTickFormat: '%H:%M',
     timeRangeSource: TimeRangeSource.DASHBOARD,
     timeRangeOverride: {
       from: moment(),
@@ -78,7 +78,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       }
     },
     confidence: 0,
-    timeInterval: undefined,
+    timeInterval: 30,
     override: '',
     pod: Pod.LINE,
     lineMode: Mode.STANDARD,
@@ -268,12 +268,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
     switch(this.pod) {
       case Pod.LINE:
-        this.chart = new ChartwerkLineChart(this.chartContainer, this.series as any, this.chartOptions);
+        this.chart = new ChartwerkLineChart(this.chartContainer, this.series, this.chartOptions);
         this.chart.render();
         break;
 
       case Pod.BAR:
-        this.chart = new ChartwerkBarChart(this.chartContainer, this.series as any, this.chartOptions);
+        this.chart = new ChartwerkBarChart(this.chartContainer, this.series, this.chartOptions);
         this.chart.render();
         break;
 

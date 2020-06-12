@@ -1,11 +1,11 @@
 $timepickerWidth: 330px;
 $timepickerHeight: 225px;
 
+.submenu-controls {
+  height: 10%;
+  float: right;
+}
 .timepicker {
-  right: 0;
-  position: absolute;
-  margin-right: 25px;
-
   .custom-scrollbar {
     display: none;
   }
@@ -34,10 +34,6 @@ $timepickerHeight: 225px;
       display: none;
     }
   }
-}
-.lock-icon {
-  position: absolute;
-  right: $timepickerWidth + 35px;
 }
 // careful: it might break something
 // ".panel-content" div is outside the panel
