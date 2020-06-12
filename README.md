@@ -1,5 +1,4 @@
-# Grafana Chartwerk Panel
-
+# Grafana Chartwerk Panel (beta)
 ![image](https://user-images.githubusercontent.com/47055832/80608867-1b5f6c80-8a40-11ea-85c5-c9676a58b77a.png)
 
  **Grafana Chartwerk Panel** renders metrics using ChartWerk libraries. For now, it can render as a line and a series of bars. We are working on adding new visualizations.
@@ -9,18 +8,18 @@
 - 2 types of visualizations:
   - line-chart
   - bar-chart
-- ability to make panel's time range independent of dashboard's.
+- ability to make panel's time range independent of dashboard's (doesn't work in Grafana 7).
 - ability to display template variables inside the panel.
 - "Charge" mode: green color for positive graph's slope, red color for negative graph's slope.
-- confidence interval.
+- confidence interval (for line).
 - customizable X-axis labels.
 - customizable grid interval.
 
-![image](https://user-images.githubusercontent.com/66464000/84491069-0b7cae80-acb5-11ea-959b-ef67835c8055.png)
 ![image](https://user-images.githubusercontent.com/66464000/84491085-10416280-acb5-11ea-8af0-2761ed97aecc.png)
+![image](https://user-images.githubusercontent.com/66464000/84491069-0b7cae80-acb5-11ea-959b-ef67835c8055.png)
 
 ## Installation
-## On Linux
+### Linux / Mac OS X
 - Navigate to either: 
   - `<GRAFANA_PATH>/data/plugins` (when installed from tarball or source) 
   - or `/var/lib/grafana/plugins` (when installed from `.deb`/`.rpm` package)
@@ -43,7 +42,7 @@ unzip grafana-chartwerk-panel-master.zip
   - For grafana installed via Package Manager:
     - type in ```systemctl restart grafana-server```
 
-## Grafana in Docker
+### Grafana in Docker
 You can install ChartWerk panel to Grafana in Docker passing it as environment variable (as described in [Grafana docs](http://docs.grafana.org/installation/docker/#installing-plugins-from-other-sources))
 
 ```bash
