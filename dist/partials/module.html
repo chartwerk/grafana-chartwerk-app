@@ -12,15 +12,17 @@
       on-updated="ctrl.onVariableUpdate(ctrl.getVariableByName(name))"
     ></value-select-dropdown>
   </div>
-  <timepicker
-    class="timepicker"
-    value="ctrl.timeRangeOverride"
-    onChange="ctrl.onTimeRangeApplyClick.bind(ctrl)"
-  />
-  <button ng-click="ctrl.onLockClick()" class="btn navbar-button lock-icon">
-    <i ng-if="ctrl.isTimePickerLocked" class="fa fa-lock" aria-hidden="true"></i>
-    <i ng-if="!ctrl.isTimePickerLocked" class="fa fa-unlock-alt" aria-hidden="true"></i>
-  </button>
+  <div ng-if="ctrl.isPanelTimeRangeSupported">
+    <timepicker
+      class="timepicker"
+      value="ctrl.timeRangeOverride"
+      onChange="ctrl.onTimeRangeApplyClick.bind(ctrl)"
+    />
+    <button ng-click="ctrl.onLockClick()" class="btn navbar-button lock-icon">
+      <i ng-if="ctrl.isTimePickerLocked" class="fa fa-lock" aria-hidden="true"></i>
+      <i ng-if="!ctrl.isTimePickerLocked" class="fa fa-unlock-alt" aria-hidden="true"></i>
+    </button>
+  </div>
 </div>
 <div class="chartwerk-container"></div>
 <div class="chartwerk-warning" ng-if="ctrl.shouldDisplayWarnings && ctrl.warning !== ''">
