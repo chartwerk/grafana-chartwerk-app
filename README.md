@@ -1,11 +1,7 @@
 # Grafana Chartwerk Panel (beta)
-
-<p align="center"><img src="https://user-images.githubusercontent.com/66464000/84520316-6c6fab00-ace4-11ea-9bfc-29ca73e5105e.png" width="150" height="150" /></div>
+![image](https://user-images.githubusercontent.com/47055832/80608867-1b5f6c80-8a40-11ea-85c5-c9676a58b77a.png)
 
  **Grafana Chartwerk Panel** renders metrics using ChartWerk libraries. For now, it can render as a line and a series of bars. We are working on adding new visualizations.
-
-![image](https://user-images.githubusercontent.com/66464000/84491085-10416280-acb5-11ea-8af0-2761ed97aecc.png)
-![image](https://user-images.githubusercontent.com/66464000/84491069-0b7cae80-acb5-11ea-959b-ef67835c8055.png)
 
 ## Features
 
@@ -18,6 +14,9 @@
 - confidence interval (for line).
 - customizable X-axis labels.
 - customizable grid interval.
+
+![image](https://user-images.githubusercontent.com/66464000/84491085-10416280-acb5-11ea-8af0-2761ed97aecc.png)
+![image](https://user-images.githubusercontent.com/66464000/84491069-0b7cae80-acb5-11ea-959b-ef67835c8055.png)
 
 ## Installation
 ### Linux / Mac OS X
@@ -52,3 +51,7 @@ docker run \
   -e "GF_INSTALL_PLUGINS=https://github.com/chartwerk/grafana-chartwerk-panel/archive/master.zip;corpglory-chartwerk-panel" \
   grafana/grafana
 ```
+
+<img src="https://user-images.githubusercontent.com/66464000/84520316-6c6fab00-ace4-11ea-9bfc-29ca73e5105e.png" width="50" height="50" />
+<a href="https://chartwerk.io/">chartwerk.io</a>
+
