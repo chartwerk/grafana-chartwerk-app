@@ -678,19 +678,19 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   private _checkGrafanaVersion(): void {
     const grafanaVersion = this._grafanaVersion;
-    if (grafanaVersion === null) {
+    if(grafanaVersion === null) {
       throw new Error('Unknown Grafana version. Only Grafana 6.6.1+ is supported');
     }
-    if (!isVersionGtOrEq(grafanaVersion, '6.6.1')) {
+    if(!isVersionGtOrEq(grafanaVersion, '6.6.1')) {
       throw new Error(`Unsupported Grafana version: ${grafanaVersion}`);
     }
-    if (grafanaVersion[0] === '7') {
+    if(isVersionGtOrEq(grafanaVersion, '7.0.0')) {
       this.isPanelTimeRangeSupported = false;
     }
   }
 
   private get _grafanaVersion(): string {
-    if (_.has(window, 'grafanaBootData.settings.buildInfo.version')) {
+    if(_.has(window, 'grafanaBootData.settings.buildInfo.version')) {
       return window.grafanaBootData.settings.buildInfo.version;
     }
     return null;
