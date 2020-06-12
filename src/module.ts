@@ -9,6 +9,8 @@ import { GraphTooltip } from './graph_tooltip';
 
 import { isArraySortedAscending } from './utils';
 
+import { isVersionGtOrEq } from './utils/version';
+
 import { ChartwerkBarChart, BarOptions, BarTimeSerie } from '@chartwerk/bar-chart';
 import { ChartwerkLineChart, LineOptions, LineTimeSerie } from '@chartwerk/line-chart';
 
@@ -99,6 +101,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   displayedVariables: { [name: string]: { displayed: boolean, label?: string } } = {};
   series: ChartwerkTimeSerie[] = [];
 
+  isPanelTimeRangeSupported = true;
+
   /** @ngInject */
   constructor(
     $scope: ng.IScope,
@@ -108,6 +112,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   ) {
     super($scope, $injector);
     _.defaults(this.panel, this.panelDefaults);
+
+    this._checkGrafanaVersion();
 
     this.events.on(PanelEvents.editModeInitialized, this.onInitEditMode.bind(this));
     this.dashboard.events.on('time-range-updated', this.onDashboardTimeRangeChange.bind(this));
@@ -184,6 +190,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   setPanelTimeRange(newTimeRange: TimeRange, shouldRefreshAfterChange: boolean = true): void {
+    if(!this.isPanelTimeRangeSupported) {
+      return;
+    }
+
     this.timeRangeOverride = newTimeRange;
 
     const timezone = this.dashboard.timezone;
@@ -504,6 +514,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   get templateVariables(): QueryVariable[] {
+    // it's deprecated
     return this.templateSrv.variables;
   }
 
@@ -663,6 +674,26 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       metricList.push(metricName)
       this.hiddenMetrics = metricList;
     }
+  }
+
+  private _checkGrafanaVersion(): void {
+    const grafanaVersion = this._grafanaVersion;
+    if(grafanaVersion === null) {
+      throw new Error('Unknown Grafana version. Only Grafana 6.6.1+ is supported');
+    }
+    if(!isVersionGtOrEq(grafanaVersion, '6.6.1')) {
+      throw new Error(`Unsupported Grafana version: ${grafanaVersion}`);
+    }
+    if(isVersionGtOrEq(grafanaVersion, '7.0.0')) {
+      this.isPanelTimeRangeSupported = false;
+    }
+  }
+
+  private get _grafanaVersion(): string {
+    if(_.has(window, 'grafanaBootData.settings.buildInfo.version')) {
+      return window.grafanaBootData.settings.buildInfo.version;
+    }
+    return null;
   }
 }
 
