@@ -27,12 +27,12 @@
 
 - Download ChartWerk panel
 ```
-wget https://github.com/chartwerk/grafana-chartwerk-panel/archive/master.zip
+wget https://github.com/chartwerk/grafana-chartwerk-panel/archive/0.1.1.zip
 ```
 
 - Unpack downloaded files
 ```
-unzip grafana-chartwerk-panel-master.zip
+unzip 0.1.1.zip
 ```
 
 - Restart grafana-server
@@ -49,6 +49,6 @@ You can install ChartWerk panel to Grafana in Docker passing it as environment v
 ```bash
 docker run \
   -p 3000:3000 \
-  -e "GF_INSTALL_PLUGINS=https://github.com/chartwerk/grafana-chartwerk-panel/archive/master.zip;corpglory-chartwerk-panel" \
+  -e "GF_INSTALL_PLUGINS=https://github.com/chartwerk/grafana-chartwerk-panel/archive/0.1.1.zip;corpglory-chartwerk-panel" \
   grafana/grafana
 ```
