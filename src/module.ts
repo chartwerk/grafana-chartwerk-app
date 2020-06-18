@@ -82,7 +82,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   ticksOrientation = _.map(TickOrientation, (name: string) => name);
   timeRangeSources = _.map(TimeRangeSource, (name: string) => name);
   podTypes = _.map(Pod, (name: string) => name);
-  timeFormates = _.map(TimeFormat, (name: string) => name);
+  timeFormats = _.map(TimeFormat, (name: string) => name);
   mode = _.map(Mode, (name: string) => name);
   warning = '';
 
