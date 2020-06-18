@@ -12,7 +12,7 @@ import { isArraySortedAscending } from './utils';
 import { isVersionGtOrEq } from './utils/version';
 
 import { ChartwerkBarChart, BarOptions, BarTimeSerie } from '@chartwerk/bar-chart';
-import { ChartwerkLineChart, LineOptions, LineTimeSerie } from '@chartwerk/line-chart';
+import { ChartwerkLineChart, LineOptions, LineTimeSerie, Mode, TimeFormat, TickOrientation } from '@chartwerk/line-chart';
 
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
@@ -20,7 +20,7 @@ import { VariableSrv } from 'grafana/app/features/templating/variable_srv';
 import { QueryVariable } from 'grafana/app/features/templating/query_variable';
 import { appEvents } from 'grafana/app/core/core';
 
-import { TimeSeries, PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone } from '@grafana/data';
+import { PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone } from '@grafana/data';
 import { colors } from '@grafana/ui';
 
 import * as moment from 'moment';
@@ -31,11 +31,6 @@ const PLUGIN_PATH = 'public/plugins/corpglory-chartwerk-panel';
 const PARTIALS_PATH = `${PLUGIN_PATH}/partials`;
 const MILLISECONDS_IN_MINUTE = 60 * 1000;
 
-enum TickOrientation {
-  HORIZONTAL = 'horizontal',
-  VERTICAL = 'vertical',
-  DIAGONAL = 'diagonal'
-}
 
 enum TimeRangeSource {
   DASHBOARD = 'dashboard',
@@ -45,12 +40,6 @@ enum TimeRangeSource {
 enum Pod {
   LINE = 'line',
   BAR = 'bar'
-}
-
-// TODO: use enum from lib
-enum Mode {
-  STANDARD = 'Standard',
-  CHARGE = 'Charge'
 }
 
 type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
@@ -81,6 +70,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     timeInterval: 30,
     override: '',
     pod: Pod.LINE,
+    timeFormat: TimeFormat.MINUTE,
     lineMode: Mode.STANDARD,
     displayWarnings: false,
     upperBound: '',
@@ -92,6 +82,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   ticksOrientation = _.map(TickOrientation, (name: string) => name);
   timeRangeSources = _.map(TimeRangeSource, (name: string) => name);
   podTypes = _.map(Pod, (name: string) => name);
+  timeFormats = _.map(TimeFormat, (name: string) => name);
   mode = _.map(Mode, (name: string) => name);
   warning = '';
 
@@ -327,7 +318,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return _.find(this.templateVariables, variable => variable.name === variableName);
   }
 
-  onDataReceived(series: TimeSeries[]): void {
+  onDataReceived(series: ChartwerkTimeSerie[]): void {
     this.warning = '';
 
     this.series = series;
@@ -460,6 +451,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   updateSeriesVariables(): void {
+    // TODO: LineTimeSerie should have "mode" field
+    // @ts-ignore
     this.series.forEach(serie => { serie.mode = this.panel.lineMode });
   }
 
@@ -482,7 +475,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       onLegendClick: this.onLegendClick.bind(this)
     }
     const timeInterval = {
-      count: this.timeInterval || this.seriesTimeStep
+      count: this.timeInterval || this.seriesTimeStep,
+      timeFormat: this.timeFormat
     }
     const renderTicksfromTimestamps = false;
     const tickFormat = {
@@ -630,6 +624,14 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set pod(value: Pod) {
     this.panel.pod = value;
+  }
+
+  get timeFormat(): TimeFormat {
+    return this.panel.timeFormat;
+  }
+
+  set timeFormat(format: TimeFormat) {
+    this.panel.timeFormat = format;
   }
 
   // TODO: not "| undefined"
