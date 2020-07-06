@@ -21,7 +21,7 @@ import { QueryVariable } from 'grafana/app/features/templating/query_variable';
 import { appEvents } from 'grafana/app/core/core';
 
 import { PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone } from '@grafana/data';
-import { colors } from '@grafana/ui';
+import { colors as grafanaColorPalette } from '@grafana/ui';
 
 import * as moment from 'moment';
 import * as _ from 'lodash';
@@ -254,11 +254,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   onRender(): void {
     this.updateVariables();
-    this.updateSeriesVariables();
-    this.getVisibleForSeries();
+
+    this.extendGrafanaSeriesWithChartwerkOptions();
 
     switch(this.pod) {
       case Pod.LINE:
+        // TODO: do not re-create pod instance each time, just update series / options
         this.chart = new ChartwerkLineChart(this.chartContainer, this.series, this.chartOptions);
         this.chart.render();
         break;
@@ -450,19 +451,16 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.initTimeRange();
   }
 
-  updateSeriesVariables(): void {
-    // TODO: LineTimeSerie should have "mode" field
-    // @ts-ignore
-    this.series.forEach(serie => { serie.mode = this.panel.lineMode });
-  }
-
-  getVisibleForSeries(): void {
-    this.series.forEach(serie => {
-      if(_.includes(this.hiddenMetrics, serie.target)) {
-        serie.visible = false;
-      } else {
-        serie.visible = true;
+  extendGrafanaSeriesWithChartwerkOptions(): void {
+    this.series.forEach((serie: ChartwerkTimeSerie, idx: number) => {
+      // TODO: handle case when not all pods have some option
+      if(this.pod === Pod.LINE) {
+        (serie as LineTimeSerie).mode = this.panel.lineMode;
       }
+
+      serie.color = grafanaColorPalette[idx];
+
+      serie.visible = !_.includes(this.hiddenMetrics, serie.target);
     });
   }
 
@@ -494,7 +492,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     // @ts-ignore
     const timeRange = { from: this.timeRangeOverride.from._i, to: this.timeRangeOverride.to._i }
     const options = {
-      colors,
       eventsCallbacks,
       timeInterval,
       tickFormat,
