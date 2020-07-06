@@ -21,6 +21,7 @@ import { QueryVariable } from 'grafana/app/features/templating/query_variable';
 import { appEvents } from 'grafana/app/core/core';
 
 import { PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone } from '@grafana/data';
+// TODO: import and use ChartWerk colors from @chartwerk/base
 import { colors as grafanaColorPalette } from '@grafana/ui';
 
 import * as moment from 'moment';
