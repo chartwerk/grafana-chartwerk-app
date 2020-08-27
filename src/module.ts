@@ -131,7 +131,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   setVariable(variableName: string, value: string): void {
     const variable = _.find(this.templateVariables, variable => variable.name === variableName);
-    if(variable === undefined) {
+    if(variable === undefined && this.injectorVariableSrv !== undefined) {
       const variable = this.injectorVariableSrv.createVariableFromModel({
         type: 'constant',
         name: variableName,
