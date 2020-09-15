@@ -131,15 +131,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   setVariable(variableName: string, value: string): void {
     const variable = _.find(this.templateVariables, variable => variable.name === variableName);
-    if(variable === undefined && this.injectorVariableSrv !== undefined) {
-      const variable = this.injectorVariableSrv.createVariableFromModel({
+    if(variable === undefined && this.variableSrv !== undefined) {
+      const variable = this.variableSrv.createVariableFromModel({
         type: 'constant',
         name: variableName,
         current: { value },
         hide: 2
       });
 
-      this.injectorVariableSrv.addVariable(variable);
+      this.variableSrv.addVariable(variable);
     } else {
       variable.current.value = value;
     }
@@ -328,7 +328,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onVariableUpdate(variable: QueryVariable): void {
-    this.injectorVariableSrv.variableUpdated(variable, true);
+    if (this.variableSrv !== undefined) {
+      this.variableSrv.variableUpdated(variable, true);
+    }
   }
 
   onConfigChange(): void {
@@ -504,15 +506,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return options;
   }
 
-  get injectorVariableSrv(): VariableSrv | undefined {
-    switch (this.grafanaVersion[0]) {
-      case '6':
-        return this.$injector.get('variableSrv');
-      case '7':
-        return undefined;
-      default:
-        throw new Error(`Unsupported Grafana version: ${this.grafanaVersion}`);
+  get variableSrv(): VariableSrv | undefined {
+    // TODO: use SemVersion comparison
+    if(this.grafanaVersion.length > 0 && this.grafanaVersion === '7') {
+      return undefined;
     }
+    return this.$injector.get('variableSrv');
   }
 
   get grafanaVersion(): string | null {
