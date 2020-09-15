@@ -99,8 +99,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   constructor(
     $scope: ng.IScope,
     $injector: ng.auto.IInjectorService,
-    public templateSrv: TemplateSrv,
-    public variableSrv: VariableSrv
+    public templateSrv: TemplateSrv
   ) {
     super($scope, $injector);
     _.defaults(this.panel, this.panelDefaults);
@@ -132,7 +131,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   setVariable(variableName: string, value: string): void {
     const variable = _.find(this.templateVariables, variable => variable.name === variableName);
-    if(variable === undefined) {
+    if(variable === undefined && this.variableSrv !== undefined) {
       const variable = this.variableSrv.createVariableFromModel({
         type: 'constant',
         name: variableName,
@@ -329,7 +328,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onVariableUpdate(variable: QueryVariable): void {
-    this.variableSrv.variableUpdated(variable, true);
+    if (this.variableSrv !== undefined) {
+      this.variableSrv.variableUpdated(variable, true);
+    }
   }
 
   onConfigChange(): void {
@@ -503,6 +504,21 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       timeRange
     };
     return options;
+  }
+
+  get variableSrv(): VariableSrv | undefined {
+    // TODO: use SemVersion comparison
+    if(this.grafanaVersion.length !== null && this.grafanaVersion === '7') {
+      return undefined;
+    }
+    return this.$injector.get('variableSrv');
+  }
+
+  get grafanaVersion(): string | null {
+    if(_.has(window, 'grafanaBootData.settings.buildInfo.version')) {
+      return window.grafanaBootData.settings.buildInfo.version;
+    }
+    return null;
   }
 
   get templateVariables(): QueryVariable[] {
