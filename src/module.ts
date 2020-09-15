@@ -508,7 +508,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   get variableSrv(): VariableSrv | undefined {
     // TODO: use SemVersion comparison
-    if(this.grafanaVersion.length > 0 && this.grafanaVersion === '7') {
+    if(this.grafanaVersion.length !== null && this.grafanaVersion === '7') {
       return undefined;
     }
     return this.$injector.get('variableSrv');
