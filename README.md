@@ -27,7 +27,7 @@
 
 - Download ChartWerk panel
 ```
-wget https://github.com/chartwerk/grafana-chartwerk-panel/archive/0.1.2.zip
+wget https://github.com/chartwerk/grafana-chartwerk-app/archive/0.1.2.zip
 ```
 
 - Unpack downloaded files
