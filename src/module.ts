@@ -32,6 +32,7 @@ import * as _ from 'lodash';
 const PLUGIN_PATH = 'public/plugins/corpglory-chartwerk-panel';
 const PARTIALS_PATH = `${PLUGIN_PATH}/partials`;
 const MILLISECONDS_IN_MINUTE = 60 * 1000;
+const DEFAULT_GAUGE_COLOR = '#37872d';
 
 
 enum TimeRangeSource {
@@ -47,6 +48,10 @@ enum Pod {
 
 type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
 type ChartwerkOptions = BarOptions | LineOptions;
+type GaugeThreshold = {
+  color: string,
+  value: number
+}
 
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
@@ -78,7 +83,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     displayWarnings: false,
     upperBound: '',
     lowerBound: '',
-    hiddenMetrics: []
+    hiddenMetrics: [],
+    gaugeThresholds: [],
+    defaultGaugeColor: DEFAULT_GAUGE_COLOR
   };
 
   tooltip?: GraphTooltip;
@@ -255,7 +262,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
     this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 5);
     if(this.pod === Pod.GAUGE) {
-      this.addEditorTab('Gauge', `${PARTIALS_PATH}/tab_gauge.html`, 7);
+      this.addEditorTab('Gauge', `${PARTIALS_PATH}/tab_gauge.html`, 6);
+      this.addEditorTab('Colors', `${PARTIALS_PATH}/tab_colors.html`, 7);
     }
   }
 
@@ -670,6 +678,41 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   set timeFormat(format: TimeFormat) {
     this.panel.timeFormat = format;
   }
+
+  get defaultGaugeColor(): string {
+    return this.panel.defaultGaugeColor;
+  }
+
+  set defaultGaugeColor(color: string) {
+    this.panel.defaultGaugeColor = color;
+  }
+
+  get gaugeThresholds(): GaugeThreshold[] {
+    return this.panel.gaugeThresholds;
+  }
+
+  addGaugeThreshold(): void {
+    console.log('addGaugeThreshold', this.panel.gaugeThresholds);
+    const defaultThreshold = {
+      value: 0,
+      color: DEFAULT_GAUGE_COLOR
+    }
+    this.panel.gaugeThresholds.push(defaultThreshold);
+    console.log('addGaugeThreshold', this.panel.gaugeThresholds);
+    this.onConfigChange();
+  }
+
+  getGaugeThreshold(idx: number): GaugeThreshold {
+    if(this.panel.gaugeThresholds.length < idx) {
+      throw new Error(`Gauge Threshold doesn't exist for idx: ${idx} `);
+    }
+    return this.panel.gaugeThresholds[idx];
+  }
+
+
+  // set gaugeThresholds(value: number) {
+  //   this.panel.gaugeThresholds.push(value);
+  // }
 
   // TODO: not "| undefined"
   get seriesTimeStep(): number | undefined {
