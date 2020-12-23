@@ -13,7 +13,7 @@ import { isVersionGtOrEq } from './utils/version';
 
 import { ChartwerkBarChart, BarOptions, BarTimeSerie } from '@chartwerk/bar-chart';
 import { ChartwerkLineChart, LineOptions, LineTimeSerie, Mode, TimeFormat, TickOrientation } from '@chartwerk/line-chart';
-import { ChartwerkGaugePod, GaugeTimeSerie, GaugeOptions } from '@chartwerk/gauge-pod';
+import { ChartwerkGaugePod } from '@chartwerk/gauge-pod';
 
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
@@ -45,8 +45,8 @@ enum Pod {
   GAUGE = 'gauge'
 }
 
-type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie | GaugeTimeSerie;
-type ChartwerkOptions = BarOptions | LineOptions | GaugeOptions;
+type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
+type ChartwerkOptions = BarOptions | LineOptions;
 
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
@@ -272,7 +272,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
         break;
 
       case Pod.GAUGE:
-        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions);
+        const options: any = this.chartOptions;
+        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, options);
         this.chart.render();
         break;
 
