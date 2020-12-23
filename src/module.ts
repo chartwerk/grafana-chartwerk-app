@@ -78,7 +78,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     displayWarnings: false,
     upperBound: '',
     lowerBound: '',
-    hiddenMetrics: [],
+    hiddenMetrics: []
   };
 
   tooltip?: GraphTooltip;
@@ -247,11 +247,16 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   onInitEditMode(): void {
     this.addEditorTab('Visualization', `${PARTIALS_PATH}/tab_visualization.html`, 2);
-    this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
+    if(this.pod !== Pod.GAUGE) {
+      this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
+    }
     if(this.pod === Pod.LINE) {
       this.addEditorTab('Confidence', `${PARTIALS_PATH}/tab_confidence.html`, 4);
     }
     this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 5);
+    if(this.pod === Pod.GAUGE) {
+      this.addEditorTab('Gauge', `${PARTIALS_PATH}/tab_gauge.html`, 7);
+    }
   }
 
   onRender(): void {
@@ -510,7 +515,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       labelFormat,
       confidence: this.confidence,
       bounds,
-      timeRange
+      timeRange,
+      maxValue: this.maxValue
     };
     return options;
   }
@@ -631,6 +637,14 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set upperBound(alias: string) {
     this.panel.upperBound = alias;
+  }
+
+  get maxValue(): number {
+    return this.panel.maxValue;
+  }
+
+  set maxValue(alias: number) {
+    this.panel.maxValue = alias;
   }
 
   get lowerBound(): string {
