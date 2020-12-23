@@ -524,7 +524,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       confidence: this.confidence,
       bounds,
       timeRange,
-      maxValue: this.maxValue
+      maxValue: this.maxValue,
+      stops: this.gaugeThresholds,
+      defaultColor: this.defaultGaugeColor,
     };
     return options;
   }
@@ -692,13 +694,18 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   addGaugeThreshold(): void {
-    console.log('addGaugeThreshold', this.panel.gaugeThresholds);
     const defaultThreshold = {
       value: 0,
       color: DEFAULT_GAUGE_COLOR
     }
     this.panel.gaugeThresholds.push(defaultThreshold);
-    console.log('addGaugeThreshold', this.panel.gaugeThresholds);
+    this.onConfigChange();
+  }
+
+  deleteGaugeThreshold(idx: number): void {
+    let thresholds = _.cloneDeep(this.gaugeThresholds);
+    thresholds.splice(idx, 1);
+    this.panel.gaugeThresholds = thresholds;
     this.onConfigChange();
   }
 
@@ -708,11 +715,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
     return this.panel.gaugeThresholds[idx];
   }
-
-
-  // set gaugeThresholds(value: number) {
-  //   this.panel.gaugeThresholds.push(value);
-  // }
 
   // TODO: not "| undefined"
   get seriesTimeStep(): number | undefined {

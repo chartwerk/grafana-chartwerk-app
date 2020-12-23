@@ -23,6 +23,15 @@
     ng-model="ctrl.getGaugeThreshold(idx).value"
     ng-blur="ctrl.onConfigChange()"
   >
+  <button
+    ng-click="ctrl.deleteGaugeThreshold(idx)"
+    class="query-editor-row__action"
+    bs-tooltip="'Delete'"
+  >
+    <a class="pointer">
+      <i class="fa fa-fw fa-trash"></i>
+    </a>
+  </button>
 </div>
 
 <div class="gf-form">
