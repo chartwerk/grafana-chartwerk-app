@@ -1,0 +1,33 @@
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Default Gauge Color: </label>
+  <input
+    type="string"
+    class="gf-form-input width-12"
+    ng-model="ctrl.defaultGaugeColor"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form" ng-repeat="(idx, threshold) in ctrl.gaugeThresholds">
+  <label class="gf-form-label query-keyword width-6"> Color: </label>
+  <input
+    type="string"
+    class="gf-form-input width-6"
+    ng-model="ctrl.getGaugeThreshold(idx).color"
+    ng-blur="ctrl.onConfigChange()"
+  >
+  <label class="gf-form-label query-keyword width-6"> Value: </label>
+  <input
+    type="number"
+    class="gf-form-input width-6"
+    ng-model="ctrl.getGaugeThreshold(idx).value"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form">
+  <button class="btn btn-secondary width-12" ng-click="ctrl.addGaugeThreshold()">
+    <i class="fa fa-plus"></i>
+    &ensp;Add Threshold
+  </button>
+</div>
