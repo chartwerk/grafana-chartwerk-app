@@ -272,8 +272,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
         break;
 
       case Pod.GAUGE:
-        const options: any = this.chartOptions;
-        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, options);
+        const gaugeOptions: any = this.chartOptions;
+        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, gaugeOptions);
         this.chart.render();
         break;
 
@@ -480,7 +480,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       zoomOut: this.onZoomOut.bind(this),
       mouseMove: this.onChartHover.bind(this),
       mouseOut: this.onChartLeave.bind(this),
-      onLegendClick: this.onLegendClick.bind(this)
+      onLegendClick: this.onLegendClick.bind(this),
+      onLegendLabelClick: () => {}
     }
     const timeInterval = {
       count: this.timeInterval || this.seriesTimeStep,
