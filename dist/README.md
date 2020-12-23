@@ -2,6 +2,8 @@
 
 <p align="center"><img src="https://user-images.githubusercontent.com/66464000/84520316-6c6fab00-ace4-11ea-9bfc-29ca73e5105e.png" width="150" height="150" /></div>
 
+[![Build Status](https://travis-ci.org/chartwerk/grafana-chartwerk-app.svg?branch=master)](https://travis-ci.org/chartwerk/grafana-chartwerk-app)
+
  **Grafana Chartwerk Panel** renders metrics using ChartWerk libraries. For now, it can render as a line and a series of bars. We are working on adding new visualizations.
 
 ![image](https://user-images.githubusercontent.com/66464000/84491085-10416280-acb5-11ea-8af0-2761ed97aecc.png)
