@@ -13,7 +13,7 @@ import { isVersionGtOrEq } from './utils/version';
 
 import { ChartwerkBarChart, BarOptions, BarTimeSerie } from '@chartwerk/bar-chart';
 import { ChartwerkLineChart, LineOptions, LineTimeSerie, Mode, TimeFormat, TickOrientation } from '@chartwerk/line-chart';
-import { ChartwerkGaugePod, GaugeOptions, GaugeTimeSerie } from '@chartwerk/gauge-pod';
+import { ChartwerkGaugePod } from '@chartwerk/gauge-pod';
 
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
@@ -46,11 +46,14 @@ enum Pod {
   GAUGE = 'gauge'
 }
 
-type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie | GaugeTimeSerie;
-type ChartwerkOptions = BarOptions | LineOptions | GaugeOptions;
+// TODO: agg Gauge types when all pods are inherited from the same @chartwerk/core version
+type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
+type ChartwerkOptions = BarOptions | LineOptions;
 type GaugeThreshold = {
   color: string,
-  value: number
+  value: number,
+  isUsingMetric: boolean,
+  metric: string
 }
 
 if (window.grafanaBootData.user.lightTheme) {
@@ -267,6 +270,25 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
   }
 
+  private _getThresholdValue(threshold: GaugeThreshold): number | null {
+    if(!threshold.isUsingMetric) {
+      return threshold.value;
+    }
+
+    const serie = _.find(this.series, serie => serie.target === threshold.metric);
+    if(serie === undefined) {
+      console.error(`Can't find metric named ${threshold.metric}`);
+      return null;
+    }
+
+    if(serie.datapoints.length === 0) {
+      return null;
+    } else {
+      // TODO: maybe make it able to use some aggregation?
+      return _.last(serie.datapoints)[0];
+    }
+  }
+
   onRender(): void {
     this.updateVariables();
 
@@ -285,12 +307,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
         break;
 
       case Pod.GAUGE:
-        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions);
+        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions as any);
         this.chart.render();
         break;
 
       default:
-        throw new Error(`Uknown pod type: ${this.pod}`);
+        throw new Error(`Unknown pod type: ${this.pod}`);
     }
   }
 
@@ -348,7 +370,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onVariableUpdate(variable: QueryVariable): void {
-    if (this.variableSrv !== undefined) {
+    if(this.variableSrv !== undefined) {
       this.variableSrv.variableUpdated(variable, true);
     }
   }
@@ -514,6 +536,11 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
     // @ts-ignore
     const timeRange = { from: this.timeRangeOverride.from._i, to: this.timeRangeOverride.to._i }
+
+    const stops = this.gaugeThresholds.map(
+      threshold => ({ color: threshold.color, value: this._getThresholdValue(threshold) })
+    );
+
     const options = {
       eventsCallbacks,
       timeInterval,
@@ -524,7 +551,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       bounds,
       timeRange,
       maxValue: this.maxValue,
-      stops: this.gaugeThresholds,
+      stops,
       defaultColor: this.defaultGaugeColor,
     };
     return options;
@@ -692,10 +719,22 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return this.panel.gaugeThresholds;
   }
 
+  get metricNames(): string[] {
+    if(
+      this.series === undefined ||
+      this.series.length === 0
+    ) {
+      return [];
+    }
+    return this.series.map(serie => serie.target);
+  }
+
   addGaugeThreshold(): void {
     const defaultThreshold = {
       value: 0,
-      color: DEFAULT_GAUGE_COLOR
+      color: DEFAULT_GAUGE_COLOR,
+      isUsingMetric: false,
+      metric: ''
     }
     this.panel.gaugeThresholds.push(defaultThreshold);
     this.onConfigChange();
