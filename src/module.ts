@@ -13,7 +13,7 @@ import { isVersionGtOrEq } from './utils/version';
 
 import { ChartwerkBarChart, BarOptions, BarTimeSerie } from '@chartwerk/bar-chart';
 import { ChartwerkLineChart, LineOptions, LineTimeSerie, Mode, TimeFormat, TickOrientation } from '@chartwerk/line-chart';
-import { ChartwerkGaugePod } from '@chartwerk/gauge-pod';
+import { ChartwerkGaugePod, GaugeOptions, GaugeTimeSerie } from '@chartwerk/gauge-pod';
 
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
@@ -22,7 +22,7 @@ import { QueryVariable } from 'grafana/app/features/templating/query_variable';
 import { appEvents } from 'grafana/app/core/core';
 
 import { PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone } from '@grafana/data';
-// TODO: import and use ChartWerk colors from @chartwerk/base
+// TODO: import and use ChartWerk colors from @chartwerk/core
 import { colors as grafanaColorPalette } from '@grafana/ui';
 
 import * as moment from 'moment';
@@ -46,8 +46,8 @@ enum Pod {
   GAUGE = 'gauge'
 }
 
-type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
-type ChartwerkOptions = BarOptions | LineOptions;
+type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie | GaugeTimeSerie;
+type ChartwerkOptions = BarOptions | LineOptions | GaugeOptions;
 type GaugeThreshold = {
   color: string,
   value: number
@@ -285,8 +285,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
         break;
 
       case Pod.GAUGE:
-        const gaugeOptions: any = this.chartOptions;
-        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, gaugeOptions);
+        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions);
         this.chart.render();
         break;
 
