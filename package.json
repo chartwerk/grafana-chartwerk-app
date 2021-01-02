@@ -18,7 +18,7 @@
     "@grafana/runtime": "^6.7.1",
     "@grafana/ui": "^6.7.1",
     "@types/angular": "^1.6.57",
-    "@types/grafana": "github:CorpGlory/types-grafana",
+    "@types/grafana": "github:CorpGlory/types-grafana#8c55ade5212f089748f6955f73e8f753fff9f278",
     "@types/jquery": "^3.3.34",
     "@types/lodash": "^4.14.74",
     "copy-webpack-plugin": "^4.5.1",
