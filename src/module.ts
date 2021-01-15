@@ -295,8 +295,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
     this.extendGrafanaSeriesWithChartwerkOptions();
 
-    console.log(this.chartContainer)
-
     switch(this.pod) {
       case Pod.LINE:
         // TODO: do not re-create pod instance each time, just update series / options
