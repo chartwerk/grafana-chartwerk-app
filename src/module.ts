@@ -311,12 +311,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
       case Pod.GAUGE:
         if(this.isFirstRendering) {
-          window.requestAnimationFrame(() => {
+          setTimeout(() => {
             this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions as any);
             this.chart.render();
 
             this.isFirstRendering = false;
-          });
+          }, 500);
         }
         break;
 
