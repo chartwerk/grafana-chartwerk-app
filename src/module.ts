@@ -88,7 +88,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     lowerBound: '',
     hiddenMetrics: [],
     gaugeThresholds: [],
-    defaultGaugeColor: DEFAULT_GAUGE_COLOR
+    defaultGaugeColor: DEFAULT_GAUGE_COLOR,
+    valueDecimals: 1
   };
 
   tooltip?: GraphTooltip;
@@ -551,6 +552,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       bounds,
       timeRange,
       maxValue: this.maxValue,
+      valueTextFormat: { decimals: this.valueDecimals },
       stops,
       defaultColor: this.defaultGaugeColor,
     };
@@ -681,6 +683,14 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set maxValue(alias: number) {
     this.panel.maxValue = alias;
+  }
+
+  get valueDecimals(): number {
+    return this.panel.valueDecimals;
+  }
+
+  set valueDecimals(decimals: number) {
+    this.panel.valueDecimals = decimals;
   }
 
   get lowerBound(): string {
