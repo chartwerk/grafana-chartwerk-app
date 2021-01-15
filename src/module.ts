@@ -317,6 +317,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
             this.isFirstRendering = false;
           }, 500);
+        } else {
+          this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions as any);
+          this.chart.render();
         }
         break;
 
