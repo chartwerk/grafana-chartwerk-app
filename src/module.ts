@@ -108,6 +108,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   isPanelTimeRangeSupported = true;
 
+  isFirstRendering = true;
+
   /** @ngInject */
   constructor(
     $scope: ng.IScope,
@@ -308,8 +310,14 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
         break;
 
       case Pod.GAUGE:
-        this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions as any);
-        this.chart.render();
+        if(this.isFirstRendering) {
+          window.requestAnimationFrame(() => {
+            this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions as any);
+            this.chart.render();
+
+            this.isFirstRendering = false;
+          });
+        }
         break;
 
       default:
