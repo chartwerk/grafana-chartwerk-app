@@ -55,6 +55,11 @@ type GaugeThreshold = {
   isUsingMetric: boolean,
   metric: string
 }
+// type GaugeExtremumValue = {
+//   value: number | null,
+//   isUsingMetric: boolean,
+//   metric: string | null
+// }
 
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
@@ -89,7 +94,17 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     hiddenMetrics: [],
     gaugeThresholds: [],
     defaultGaugeColor: DEFAULT_GAUGE_COLOR,
-    valueDecimals: 1
+    valueDecimals: 1,
+    gaugeMaxValue: {
+      value: null,
+      isUsingMetric: false,
+      metric: null
+    },
+    gaugeMinValue: {
+      value: null,
+      isUsingMetric: false,
+      metric: null
+    }
   };
 
   tooltip?: GraphTooltip;
@@ -278,9 +293,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       return threshold.value;
     }
 
-    const serie = _.find(this.series, serie => serie.target === threshold.metric);
+    const serie = this._getSerieByTarget(threshold.metric);
     if(serie === undefined) {
-      console.error(`Can't find metric named ${threshold.metric}`);
       return null;
     }
 
@@ -290,6 +304,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       // TODO: maybe make it able to use some aggregation?
       return _.last(serie.datapoints)[0];
     }
+  }
+
+  private _getSerieByTarget(target: string): ChartwerkTimeSerie | undefined {
+    const serie = _.find(this.series, serie => serie.target === target);
+    if(serie === undefined) {
+      console.error(`Can't find metric named ${target}`);
+      return undefined;
+    }
+    return serie;
   }
 
   onRender(): void {
@@ -562,7 +585,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       confidence: this.confidence,
       bounds,
       timeRange,
-      maxValue: this.maxValue,
+      maxValue: this.gaugeMaxValue,
+      minValue: this.gaugeMinValue,
       valueTextFormat: { decimals: this.valueDecimals },
       stops,
       defaultColor: this.defaultGaugeColor,
@@ -688,12 +712,86 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.upperBound = alias;
   }
 
+  get gaugeMaxValue(): number | null {
+    if(this.isUsingMetricForMaxValue === false) {
+      return this.maxValue;
+    }
+    const serie = this._getSerieByTarget(this.maxValueMetric);
+    return this._getLastValueFromSerie(serie);
+  }
+
+  private _getLastValueFromSerie(serie: ChartwerkTimeSerie | undefined): number | null {
+    if(serie === undefined) {
+      return null;
+    }
+    if(serie.datapoints.length === 0) {
+      return null;
+    } else {
+      // TODO: maybe make it able to use some aggregation?
+      return _.last(serie.datapoints)[0];
+    }
+  }
+
+  get gaugeMinValue(): number | null {
+    if(this.isUsingMetricForMinValue === false) {
+      return this.minValue;
+    }
+    const serie = this._getSerieByTarget(this.minValueMetric);
+    return this._getLastValueFromSerie(serie);
+  }
+
   get maxValue(): number {
     return this.panel.maxValue;
   }
 
   set maxValue(alias: number) {
     this.panel.maxValue = alias;
+  }
+
+  get isUsingMetricForMaxValue(): boolean {
+    return this.panel.gaugeMaxValue.isUsingMetric;
+  }
+
+  set isUsingMetricForMaxValue(val: boolean) {
+    this.panel.gaugeMaxValue.isUsingMetric = val;
+  }
+
+  get maxValueMetric(): string | null {
+    if(this.isUsingMetricForMaxValue === false) {
+      return null;
+    }
+    return this.panel.gaugeMaxValue.metric;
+  }
+
+  set maxValueMetric(metric: string | null) {
+    this.panel.gaugeMaxValue.metric = metric;
+  }
+
+  get minValue(): number {
+    return this.panel.gaugeMinValue.value;
+  }
+
+  set minValue(value: number) {
+    this.panel.gaugeMinValue.value = value;
+  }
+
+  get isUsingMetricForMinValue(): boolean {
+    return this.panel.gaugeMinValue.isUsingMetric;
+  }
+
+  set isUsingMetricForMinValue(val: boolean) {
+    this.panel.gaugeMinValue.isUsingMetric = val;
+  }
+
+  get minValueMetric(): string | null {
+    if(this.isUsingMetricForMinValue === false) {
+      return null;
+    }
+    return this.panel.gaugeMinValue.metric;
+  }
+
+  set minValueMetric(metric: string | null) {
+    this.panel.gaugeMinValue.metric = metric;
   }
 
   get valueDecimals(): number {
