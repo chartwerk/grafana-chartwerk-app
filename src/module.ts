@@ -21,7 +21,15 @@ import { VariableSrv } from 'grafana/app/features/templating/variable_srv';
 import { QueryVariable } from 'grafana/app/features/templating/query_variable';
 import { appEvents } from 'grafana/app/core/core';
 
-import { PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone, getValueFormat } from '@grafana/data';
+import {
+  PanelEvents,
+  TimeRange,
+  DateTime,
+  AbsoluteTimeRange,
+  dateTimeForTimeZone,
+  getValueFormat,
+  formattedValueToString
+} from '@grafana/data';
 // TODO: import and use ChartWerk colors from @chartwerk/core
 import { colors as grafanaColorPalette } from '@grafana/ui';
 
@@ -105,7 +113,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       isUsingMetric: false,
       metric: null
     },
-    unit: 'short'
+    unit: 'none'
   };
 
   tooltip?: GraphTooltip;
@@ -397,20 +405,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return _.find(this.templateVariables, variable => variable.name === variableName);
   }
 
-  get valueFormatter(): (value: number) => string {
-    const formatter = getValueFormat(this.unit);
-    if(!formatter) {
-      return (value: number) => value.toFixed(this.valueDecimals);
-    } else {
-      return (value: number) => {
-        const formattedValue = formatter(value, this.valueDecimals);
-        return (formattedValue.prefix ?? '') +
-          formattedValue.text + 
-          (formattedValue.suffix ?? '');
-      };
-    }
-  }
-
   onDataReceived(series: ChartwerkTimeSerie[]): void {
     this.warning = '';
 
@@ -613,6 +607,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       defaultColor: this.defaultGaugeColor,
     };
     return options;
+  }
+
+  get valueFormatter(): (value: number) => string {
+    const formatter = getValueFormat(this.unit);
+
+    return (value: number) => {
+      const formattedValue = formatter(value, this.valueDecimals);
+      return formattedValueToString(formattedValue);
+    };
   }
 
   get variableSrv(): VariableSrv | undefined {
