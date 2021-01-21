@@ -21,7 +21,7 @@ import { VariableSrv } from 'grafana/app/features/templating/variable_srv';
 import { QueryVariable } from 'grafana/app/features/templating/query_variable';
 import { appEvents } from 'grafana/app/core/core';
 
-import { PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone } from '@grafana/data';
+import { PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone, getValueFormat } from '@grafana/data';
 // TODO: import and use ChartWerk colors from @chartwerk/core
 import { colors as grafanaColorPalette } from '@grafana/ui';
 
@@ -104,7 +104,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       value: null,
       isUsingMetric: false,
       metric: null
-    }
+    },
+    unit: 'short'
   };
 
   tooltip?: GraphTooltip;
@@ -396,6 +397,20 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return _.find(this.templateVariables, variable => variable.name === variableName);
   }
 
+  get valueFormatter(): (value: number) => string {
+    const formatter = getValueFormat(this.unit);
+    if(!formatter) {
+      return (value: number) => value.toFixed(this.valueDecimals);
+    } else {
+      return (value: number) => {
+        const formattedValue = formatter(value, this.valueDecimals);
+        return (formattedValue.prefix ?? '') +
+          formattedValue.text + 
+          (formattedValue.suffix ?? '');
+      };
+    }
+  }
+
   onDataReceived(series: ChartwerkTimeSerie[]): void {
     this.warning = '';
 
@@ -411,6 +426,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onConfigChange(): void {
+    console.log(this.unit);
     this.render();
   }
 
@@ -543,6 +559,11 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     });
   }
 
+  setUnit(unit: string): void {
+    this.panel.unit = unit;
+    this.onConfigChange();
+  }
+
   get chartOptions(): ChartwerkOptions {
     const eventsCallbacks = {
       zoomIn: this.onZoomIn.bind(this),
@@ -587,7 +608,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       timeRange,
       maxValue: this.gaugeMaxValue,
       minValue: this.gaugeMinValue,
-      valueTextFormat: { decimals: this.valueDecimals },
+      valueFormatter: this.valueFormatter,
       stops,
       defaultColor: this.defaultGaugeColor,
     };
@@ -661,6 +682,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set yAxisLabel(label: string) {
     this.panel.yAxisLabel = label;
+  }
+
+  get unit(): string {
+    return this.panel.unit;
   }
 
   get timeRangeOverride(): TimeRange {

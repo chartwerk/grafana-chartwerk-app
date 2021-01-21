@@ -60,7 +60,16 @@
 </div>
 
 <br />
-<h5 class="section-heading">Value Label</h5>
+
+<h5 class="section-heading">Value Format</h5>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12">
+    Unit
+  </label>
+  <unit-picker class="width-12" onChange="ctrl.setUnit" value="ctrl.unit"></unit-picker>
+</div>
+
 <div class="gf-form">
   <label class="gf-form-label query-keyword width-12">
     Decimals
@@ -69,7 +78,8 @@
   <input
     type="number"
     class="gf-form-input width-12"
-    placeholder="auto" data-placement="right"
+    placeholder="auto"
+    data-placement="right"
     ng-model="ctrl.valueDecimals"
     ng-blur="ctrl.onConfigChange()"
   />
