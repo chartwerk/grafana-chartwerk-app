@@ -1,34 +1,5 @@
 <div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Max value </label>
-  <input
-    ng-if="!ctrl.isUsingMetricForMaxValue"
-    placeholder="auto"
-    type="number"
-    class="gf-form-input width-12"
-    ng-model="ctrl.maxValue"
-    ng-blur="ctrl.onConfigChange()"
-  >
-  <div ng-if="ctrl.isUsingMetricForMaxValue" class="gf-form-select-wrapper width-12">
-    <select
-      class="gf-form-input"
-      ng-model="ctrl.maxValueMetric"
-      ng-options="metric for metric in ctrl.metricNames"
-      ng-change="ctrl.onConfigChange()"
-    ></select>
-  </div>
-  <label class="gf-form-label query-keyword width-6"> 
-    <i class="fa fa-info" bs-tooltip="'Enable to select a metric with dynamic value'"></i>
-    &nbsp; Use metric
-  </label>
-  <gf-form-switch
-    class="gf-form"
-    label=''
-    checked="ctrl.isUsingMetricForMaxValue"
-  ></gf-form-switch>
-</div>
-
-<div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Min value </label>
+  <label class="gf-form-label query-keyword width-12"> Min </label>
 
   <input
     ng-if="!ctrl.isUsingMetricForMinValue"
@@ -47,7 +18,7 @@
     ></select>
   </div>
 
-  <label class="gf-form-label query-keyword width-6"> 
+  <label class="gf-form-label query-keyword width-6">
     <i class="fa fa-info" bs-tooltip="'Enable to select a metric with dynamic value'"></i>
     &nbsp; Use metric
   </label>
@@ -59,8 +30,46 @@
   ></gf-form-switch>
 </div>
 
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Max </label>
+  <input
+    ng-if="!ctrl.isUsingMetricForMaxValue"
+    placeholder="auto"
+    type="number"
+    class="gf-form-input width-12"
+    ng-model="ctrl.maxValue"
+    ng-blur="ctrl.onConfigChange()"
+  >
+  <div ng-if="ctrl.isUsingMetricForMaxValue" class="gf-form-select-wrapper width-12">
+    <select
+      class="gf-form-input"
+      ng-model="ctrl.maxValueMetric"
+      ng-options="metric for metric in ctrl.metricNames"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+  </div>
+  <label class="gf-form-label query-keyword width-6">
+    <i class="fa fa-info" bs-tooltip="'Enable to select a metric with dynamic value'"></i>
+    &nbsp; Use metric
+  </label>
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="ctrl.isUsingMetricForMaxValue"
+  ></gf-form-switch>
+</div>
+
 <br />
-<h5 class="section-heading">Value Label</h5>
+
+<h5 class="section-heading">Value Format</h5>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12">
+    Unit
+  </label>
+  <unit-picker class="width-12" onChange="ctrl.setUnit" value="ctrl.unit"></unit-picker>
+</div>
+
 <div class="gf-form">
   <label class="gf-form-label query-keyword width-12">
     Decimals
@@ -69,7 +78,8 @@
   <input
     type="number"
     class="gf-form-input width-12"
-    placeholder="auto" data-placement="right"
+    placeholder="auto"
+    data-placement="right"
     ng-model="ctrl.valueDecimals"
     ng-blur="ctrl.onConfigChange()"
   />
