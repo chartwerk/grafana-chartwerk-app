@@ -67,7 +67,7 @@
   <label class="gf-form-label query-keyword width-12">
     Unit
   </label>
-  <unit-picker class="width-12" onChange="ctrl.setUnit" value="ctrl.unit"></unit-picker>
+  <unit-picker class="width-12" onChange="ctrl.setUnit.bind(ctrl)" value="ctrl.unit"></unit-picker>
 </div>
 
 <div class="gf-form">
