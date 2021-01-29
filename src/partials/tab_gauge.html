@@ -62,7 +62,6 @@
 <br />
 
 <h5 class="section-heading">Value Format</h5>
-
 <div class="gf-form">
   <label class="gf-form-label query-keyword width-12">
     Unit
@@ -81,6 +80,48 @@
     placeholder="auto"
     data-placement="right"
     ng-model="ctrl.valueDecimals"
+    ng-blur="ctrl.onConfigChange()"
+  />
+</div>
+
+<br/>
+
+<h5 class="section-heading">Icons</h5>
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12">
+    Upper left icon URL
+  </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    data-placement="right"
+    ng-model="ctrl.upperLeftIconURL"
+    ng-blur="ctrl.onConfigChange()"
+  />
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12">
+    Upper right icon URL
+  </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    data-placement="right"
+    ng-model="ctrl.upperRightIconURL"
+    ng-blur="ctrl.onConfigChange()"
+  />
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12">
+    Middle icon URL
+  </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    data-placement="right"
+    ng-model="ctrl.middleIconURL"
     ng-blur="ctrl.onConfigChange()"
   />
 </div>

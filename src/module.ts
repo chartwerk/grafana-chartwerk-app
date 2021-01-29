@@ -113,7 +113,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       isUsingMetric: false,
       metric: null
     },
-    unit: 'none'
+    unit: 'none',
+    upperLeftIconURL: '',
+    upperRightIconURL: '',
+    middleIconURL: ''
   };
 
   tooltip?: GraphTooltip;
@@ -591,6 +594,19 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       threshold => ({ color: threshold.color, value: this._getThresholdValue(threshold) })
     );
 
+    let icons = [];
+    if(this.upperLeftIconURL !== '') {
+      icons.push({ src: this.upperLeftIconURL, position: 'left', size: 50  });
+    }
+
+    if(this.upperRightIconURL !== '') {
+      icons.push({ src: this.upperRightIconURL, position: 'right', size: 50  });
+    }
+
+    if(this.middleIconURL !== '') {
+      icons.push({ src: this.middleIconURL, position: 'middle', size: 40  });
+    }
+
     const options = {
       eventsCallbacks,
       timeInterval,
@@ -605,6 +621,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       valueFormatter: this.valueFormatter,
       stops,
       defaultColor: this.defaultGaugeColor,
+      icons
     };
     return options;
   }
@@ -836,6 +853,30 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set lowerBound(alias: string) {
     this.panel.lowerBound = alias;
+  }
+
+  get upperLeftIconURL(): string {
+    return this.panel.upperLeftIconURL;
+  }
+
+  set upperLeftIconURL(url: string) {
+    this.panel.upperLeftIconURL = url;
+  }
+
+  get upperRightIconURL(): string {
+    return this.panel.upperRightIconURL;
+  }
+
+  set upperRightIconURL(url: string) {
+    this.panel.upperRightIconURL = url;
+  }
+
+  get middleIconURL(): string {
+    return this.panel.middleIconURL;
+  }
+
+  set middleIconURL(url: string) {
+    this.panel.middleIconURL = url;
   }
 
   get pod(): Pod {
