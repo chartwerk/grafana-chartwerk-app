@@ -54,6 +54,21 @@ enum Pod {
   GAUGE = 'gauge'
 }
 
+enum Condition {
+  EQUAL = '=',
+  GREATER = '>',
+  LESS = '<',
+  GREATER_OR_EQUAL = '>=',
+  LESS_OR_EQUAL = '>=',
+}
+
+type IconConfig = {
+  enabled: boolean;
+  url: string;
+  metric: string;
+  condition: Condition;
+  value: number;
+}
 // TODO: agg Gauge types when all pods are inherited from the same @chartwerk/core version
 type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
 type ChartwerkOptions = BarOptions | LineOptions;
@@ -63,11 +78,6 @@ type GaugeThreshold = {
   isUsingMetric: boolean,
   metric: string
 }
-// type GaugeExtremumValue = {
-//   value: number | null,
-//   isUsingMetric: boolean,
-//   metric: string | null
-// }
 
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
@@ -114,9 +124,27 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       metric: null
     },
     unit: 'none',
-    upperLeftIconURL: '',
-    upperRightIconURL: '',
-    middleIconURL: ''
+    upperLeftIcon: {
+      enabled: false,
+      url: '',
+      metric: '',
+      condition: Condition.EQUAL,
+      value: 0
+    },
+    upperRightIcon: {
+      enabled: false,
+      url: '',
+      metric: '',
+      condition: Condition.EQUAL,
+      value: 0
+    },
+    middleIcon: {
+      enabled: false,
+      url: '',
+      metric: '',
+      condition: Condition.EQUAL,
+      value: 0
+    }
   };
 
   tooltip?: GraphTooltip;
@@ -125,6 +153,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   podTypes = _.map(Pod, (name: string) => name);
   timeFormats = _.map(TimeFormat, (name: string) => name);
   mode = _.map(Mode, (name: string) => name);
+  conditions = _.map(Condition, (name: string) => name);
   warning = '';
 
   chartContainer?: HTMLElement;
@@ -595,16 +624,34 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     );
 
     let icons = [];
-    if(this.upperLeftIconURL !== '') {
-      icons.push({ src: this.upperLeftIconURL, position: 'left', size: 50  });
+    if(this.upperLeftIcon.enabled) {
+      const serie = this._getSerieByTarget(this.upperLeftIcon.metric);
+      const lastValue = this._getLastValueFromSerie(serie);
+      if(lastValue !== null) {
+        if(this._satifiesCondition(lastValue, this.upperLeftIcon.value, this.upperLeftIcon.condition)) {
+          icons.push({ src: this.upperLeftIcon.url, position: 'left', size: 50  });
+        }
+      }
     }
 
-    if(this.upperRightIconURL !== '') {
-      icons.push({ src: this.upperRightIconURL, position: 'right', size: 50  });
+    if(this.upperRightIcon.enabled) {
+      const serie = this._getSerieByTarget(this.upperRightIcon.metric);
+      const lastValue = this._getLastValueFromSerie(serie);
+      if(lastValue !== null) {
+        if(this._satifiesCondition(lastValue, this.upperRightIcon.value, this.upperRightIcon.condition)) {
+          icons.push({ src: this.upperRightIcon.url, position: 'right', size: 50  });
+        }
+      }
     }
 
-    if(this.middleIconURL !== '') {
-      icons.push({ src: this.middleIconURL, position: 'middle', size: 40  });
+    if(this.middleIcon.enabled) {
+      const serie = this._getSerieByTarget(this.middleIcon.metric);
+      const lastValue = this._getLastValueFromSerie(serie);
+      if(lastValue !== null) {
+        if(this._satifiesCondition(lastValue, this.middleIcon.value, this.middleIcon.condition)) {
+          icons.push({ src: this.middleIcon.url, position: 'middle', size: 40  });
+        }
+      }
     }
 
     const options = {
@@ -863,20 +910,16 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.upperLeftIconURL = url;
   }
 
-  get upperRightIconURL(): string {
-    return this.panel.upperRightIconURL;
+  get upperLeftIcon(): IconConfig {
+    return this.panel.upperLeftIcon;
   }
 
-  set upperRightIconURL(url: string) {
-    this.panel.upperRightIconURL = url;
+  get upperRightIcon(): IconConfig {
+    return this.panel.upperRightIcon;
   }
 
-  get middleIconURL(): string {
-    return this.panel.middleIconURL;
-  }
-
-  set middleIconURL(url: string) {
-    this.panel.middleIconURL = url;
+  get middleIcon(): IconConfig {
+    return this.panel.middleIcon;
   }
 
   get pod(): Pod {
@@ -984,6 +1027,39 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       metricList.push(metricName)
       this.hiddenMetrics = metricList;
     }
+  }
+
+  private _satifiesCondition(leftValue: number, rightValue: number, condition: Condition): boolean {
+    switch(condition) {
+      case Condition.EQUAL:
+        if(leftValue === rightValue) {
+          return true;
+        }
+        break;
+      case Condition.GREATER:
+        if(leftValue > rightValue) {
+          return true;
+        }
+        break;
+      case Condition.LESS:
+        if(leftValue < rightValue) {
+          return true;
+        }
+        break;
+      case Condition.GREATER_OR_EQUAL:
+        if(leftValue >= rightValue) {
+          return true;
+        }
+        break;
+      case Condition.LESS_OR_EQUAL:
+        if(leftValue <= rightValue) {
+          return true;
+        }
+        break;
+      default:
+        throw new Error(`Unknown condition: ${this.upperLeftIcon.condition}`);
+    }
+    return false;
   }
 
   private _checkGrafanaVersion(): void {
