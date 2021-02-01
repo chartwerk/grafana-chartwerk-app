@@ -88,40 +88,136 @@
 
 <h5 class="section-heading">Icons</h5>
 <div class="gf-form">
-  <label class="gf-form-label query-keyword width-12">
-    Upper left icon URL
+  <label class="gf-form-label width-12">
+    Upper left icon
+  </label>
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="ctrl.upperLeftIcon.enabled"
+    on-change="ctrl.onConfigChange()"
+  ></gf-form-switch>
+</div>
+<div class="gf-form" ng-if="ctrl.upperLeftIcon.enabled">
+  <label class="gf-form-label query-keyword width-4">
+    URL
   </label>
   <input
     type="text"
     class="gf-form-input width-12"
     data-placement="right"
-    ng-model="ctrl.upperLeftIconURL"
+    ng-model="ctrl.upperLeftIcon.url"
     ng-blur="ctrl.onConfigChange()"
   />
+  <label class="gf-form-label query-keyword width-5">
+    Condition
+  </label>
+  <select
+    class="gf-form-input"
+    ng-model="ctrl.upperLeftIcon.metric"
+    ng-options="metric for metric in ctrl.metricNames"
+    ng-change="ctrl.onConfigChange()"
+  ></select>
+  <select
+    class="gf-form-input"
+    ng-model="ctrl.upperLeftIcon.condition"
+    ng-options="condition for condition in ctrl.conditions"
+    ng-change="ctrl.onConfigChange()"
+  ></select>
+  <input
+    class="gf-form-input width-12"
+    type="number"
+    ng-model="ctrl.upperLeftIcon.value"
+    ng-blur="ctrl.onConfigChange()"
+  >
 </div>
 
 <div class="gf-form">
-  <label class="gf-form-label query-keyword width-12">
-    Upper right icon URL
+  <label class="gf-form-label width-12">
+    Upper right icon
+  </label>
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="ctrl.upperRightIcon.enabled"
+    on-change="ctrl.onConfigChange()"
+  ></gf-form-switch>
+</div>
+<div class="gf-form" ng-if="ctrl.upperRightIcon.enabled">
+  <label class="gf-form-label query-keyword width-4">
+    URL
   </label>
   <input
     type="text"
     class="gf-form-input width-12"
     data-placement="right"
-    ng-model="ctrl.upperRightIconURL"
+    ng-model="ctrl.upperRightIcon.url"
     ng-blur="ctrl.onConfigChange()"
   />
+  <label class="gf-form-label query-keyword width-5">
+    Condition
+  </label>
+  <select
+    class="gf-form-input"
+    ng-model="ctrl.upperRightIcon.metric"
+    ng-options="metric for metric in ctrl.metricNames"
+    ng-change="ctrl.onConfigChange()"
+  ></select>
+  <select
+    class="gf-form-input"
+    ng-model="ctrl.upperRightIcon.condition"
+    ng-options="condition for condition in ctrl.conditions"
+    ng-change="ctrl.onConfigChange()"
+  ></select>
+  <input
+    class="gf-form-input width-12"
+    type="number"
+    ng-model="ctrl.upperRightIcon.value"
+    ng-blur="ctrl.onConfigChange()"
+  >
 </div>
 
 <div class="gf-form">
-  <label class="gf-form-label query-keyword width-12">
-    Middle icon URL
+  <label class="gf-form-label width-12">
+    Middle icon
+  </label>
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="ctrl.middleIcon.enabled"
+    on-change="ctrl.onConfigChange()"
+  ></gf-form-switch>
+</div>
+<div class="gf-form" ng-if="ctrl.middleIcon.enabled">
+  <label class="gf-form-label query-keyword width-4">
+    URL
   </label>
   <input
     type="text"
     class="gf-form-input width-12"
     data-placement="right"
-    ng-model="ctrl.middleIconURL"
+    ng-model="ctrl.middleIcon.url"
     ng-blur="ctrl.onConfigChange()"
   />
+  <label class="gf-form-label query-keyword width-5">
+    Condition
+  </label>
+  <select
+    class="gf-form-input"
+    ng-model="ctrl.middleIcon.metric"
+    ng-options="metric for metric in ctrl.metricNames"
+    ng-change="ctrl.onConfigChange()"
+  ></select>
+  <select
+    class="gf-form-input"
+    ng-model="ctrl.middleIcon.condition"
+    ng-options="condition for condition in ctrl.conditions"
+    ng-change="ctrl.onConfigChange()"
+  ></select>
+  <input
+    class="gf-form-input width-12"
+    type="number"
+    ng-model="ctrl.middleIcon.value"
+    ng-blur="ctrl.onConfigChange()"
+  >
 </div>
