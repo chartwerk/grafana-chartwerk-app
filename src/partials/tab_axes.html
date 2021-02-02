@@ -40,18 +40,66 @@
 </div>
 
 <div class="gf-form">
-  <label class="gf-form-label query-keyword width-12"> Time interval </label>
+  <label class="gf-form-label query-keyword width-12"> Y-axis min value </label>
+
   <input
+    ng-if="!ctrl.isUsingMetricForYScaleMinValue"
+    placeholder="auto"
     type="number"
-    class="gf-form-input width-4"
-    ng-model="ctrl.timeInterval"
+    class="gf-form-input width-12"
+    ng-model="ctrl.yScaleMinValue"
     ng-blur="ctrl.onConfigChange()"
   >
-  <div class="gf-form-select-wrapper width-8 timeformat-selector">
-    <select class="gf-form-input"
-      ng-model="ctrl.timeFormat"
-      ng-options="format for format in ctrl.timeFormats"
+  <div ng-if="ctrl.isUsingMetricForYScaleMinValue" class="gf-form-select-wrapper width-12">
+    <select
+      class="gf-form-input"
+      ng-model="ctrl.minValueYScaleMetric"
+      ng-options="metric for metric in ctrl.metricNames"
       ng-change="ctrl.onConfigChange()"
     ></select>
   </div>
+
+  <label class="gf-form-label query-keyword width-6">
+    <i class="fa fa-info" bs-tooltip="'Enable to select a metric with dynamic value'"></i>
+    &nbsp; Use metric
+  </label>
+
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="ctrl.isUsingMetricForYScaleMinValue"
+  ></gf-form-switch>
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Y-axis max value </label>
+
+  <input
+    ng-if="!ctrl.isUsingMetricForYScaleMaxValue"
+    placeholder="auto"
+    type="number"
+    class="gf-form-input width-12"
+    ng-model="ctrl.yScaleMaxValue"
+    ng-blur="ctrl.onConfigChange()"
+  >
+  <div ng-if="ctrl.isUsingMetricForYScaleMaxValue" class="gf-form-select-wrapper width-12">
+    <select
+      class="gf-form-input"
+      ng-model="ctrl.maxValueYScaleMetric"
+      ng-options="metric for metric in ctrl.metricNames"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+  </div>
+
+  <label class="gf-form-label query-keyword width-6">
+    <i class="fa fa-info" bs-tooltip="'Enable to select a metric with dynamic value'"></i>
+    &nbsp; Use metric
+  </label>
+
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="ctrl.isUsingMetricForYScaleMaxValue"
+    on-change="ctrl.onConfigChange()"
+  ></gf-form-switch>
 </div>

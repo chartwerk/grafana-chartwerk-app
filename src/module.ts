@@ -62,6 +62,12 @@ enum Condition {
   LESS_OR_EQUAL = '>=',
 }
 
+enum Aggregation {
+  MIN = 'min',
+  MAX = 'max',
+  LAST = 'last'
+}
+
 type IconConfig = {
   enabled: boolean;
   url: string;
@@ -69,6 +75,8 @@ type IconConfig = {
   condition: Condition;
   value: number;
 }
+type AxisRange = [number, number] | undefined;
+
 // TODO: agg Gauge types when all pods are inherited from the same @chartwerk/core version
 type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
 type ChartwerkOptions = BarOptions | LineOptions;
@@ -144,7 +152,17 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       metric: '',
       condition: Condition.EQUAL,
       value: 0
-    }
+    },
+    yScaleMin: {
+      value: null,
+      isUsingMetric: false,
+      metric: null
+    },
+    yScaleMax: {
+      value: null,
+      isUsingMetric: false,
+      metric: null
+    },
   };
 
   tooltip?: GraphTooltip;
@@ -364,11 +382,13 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     switch(this.pod) {
       case Pod.LINE:
         // TODO: do not re-create pod instance each time, just update series / options
+        // @ts-ignore
         this.chart = new ChartwerkLineChart(this.chartContainer, this.series, this.chartOptions);
         this.chart.render();
         break;
 
       case Pod.BAR:
+        // @ts-ignore
         this.chart = new ChartwerkBarChart(this.chartContainer, this.series, this.chartOptions);
         this.chart.render();
         break;
@@ -452,7 +472,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onConfigChange(): void {
-    console.log(this.unit);
+    console.log('onConfigChange');
     this.render();
   }
 
@@ -528,12 +548,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
   }
 
-  onZoomIn(range: [number, number]): void {
+  onZoomIn(range: [AxisRange, AxisRange]): void {
     this.tooltip.clear();
-
+    if(range === undefined || range[0] === undefined) {
+      return;
+    }
+    const timestampRange = range[0];
     const timezone = this.dashboard.timezone;
-    const from = dateTimeForTimeZone(timezone, range[0]);
-    const to = dateTimeForTimeZone(timezone, range[1]);
+    const from = dateTimeForTimeZone(timezone, timestampRange[0]);
+    const to = dateTimeForTimeZone(timezone, timestampRange[1]);
 
     switch(this.timeRangeSource) {
       case TimeRangeSource.DASHBOARD:
@@ -599,10 +622,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       onLegendClick: this.onLegendClick.bind(this),
       onLegendLabelClick: () => {}
     }
-    const timeInterval = {
-      count: this.timeInterval || this.seriesTimeStep,
-      timeFormat: this.timeFormat
-    }
+
     const renderTicksfromTimestamps = false;
     const tickFormat = {
       xAxis: this.xAxisTickFormat,
@@ -626,7 +646,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     let icons = [];
     if(this.upperLeftIcon.enabled) {
       const serie = this._getSerieByTarget(this.upperLeftIcon.metric);
-      const lastValue = this._getLastValueFromSerie(serie);
+      const lastValue = this._getAggregatedValueFromSerie(serie);
       if(lastValue !== null) {
         if(this._satifiesCondition(lastValue, this.upperLeftIcon.value, this.upperLeftIcon.condition)) {
           icons.push({ src: this.upperLeftIcon.url, position: 'left', size: 50  });
@@ -636,7 +656,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
     if(this.upperRightIcon.enabled) {
       const serie = this._getSerieByTarget(this.upperRightIcon.metric);
-      const lastValue = this._getLastValueFromSerie(serie);
+      const lastValue = this._getAggregatedValueFromSerie(serie);
       if(lastValue !== null) {
         if(this._satifiesCondition(lastValue, this.upperRightIcon.value, this.upperRightIcon.condition)) {
           icons.push({ src: this.upperRightIcon.url, position: 'right', size: 50  });
@@ -646,7 +666,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
     if(this.middleIcon.enabled) {
       const serie = this._getSerieByTarget(this.middleIcon.metric);
-      const lastValue = this._getLastValueFromSerie(serie);
+      const lastValue = this._getAggregatedValueFromSerie(serie);
       if(lastValue !== null) {
         if(this._satifiesCondition(lastValue, this.middleIcon.value, this.middleIcon.condition)) {
           icons.push({ src: this.middleIcon.url, position: 'middle', size: 40  });
@@ -656,7 +676,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
     const options = {
       eventsCallbacks,
-      timeInterval,
+      axis: {
+        x: {
+          format: 'time',
+        },
+        y: {
+          format: 'numeric',
+          range: this.yScaleRange
+        }
+      },
       tickFormat,
       renderTicksfromTimestamps,
       labelFormat,
@@ -670,7 +698,32 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       defaultColor: this.defaultGaugeColor,
       icons
     };
+    // @ts-ignore
     return options;
+  }
+
+  get yScaleRange(): AxisRange {
+    if(this.yScaleMin === null && this.yScaleMax === null) {
+      return undefined;
+    }
+    let min = this.yScaleMin;
+    // TODO: refactor core
+    if(min === null) {
+      min = _.min(this.series.map(
+        serie => {
+          return this._getAggregatedValueFromSerie(serie, Aggregation.MIN);
+        }
+      ));
+    }
+    let max = this.yScaleMax;
+    if(max === null) {
+      max = _.max(this.series.map(
+        serie => {
+          return this._getAggregatedValueFromSerie(serie, Aggregation.MAX);
+        }
+      ));
+    }
+    return [min, max];
   }
 
   get valueFormatter(): (value: number) => string {
@@ -805,31 +858,39 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   get gaugeMaxValue(): number | null {
-    if(this.isUsingMetricForMaxValue === false) {
+    if(this.isUsingMetricForGaugeMaxValue === false) {
       return this.maxValue;
     }
-    const serie = this._getSerieByTarget(this.maxValueMetric);
-    return this._getLastValueFromSerie(serie);
+    const serie = this._getSerieByTarget(this.maxGaugeValueMetric);
+    return this._getAggregatedValueFromSerie(serie);
   }
 
-  private _getLastValueFromSerie(serie: ChartwerkTimeSerie | undefined): number | null {
+  private _getAggregatedValueFromSerie(serie: ChartwerkTimeSerie | undefined, aggregation = Aggregation.LAST): number | null {
     if(serie === undefined) {
       return null;
     }
     if(serie.datapoints.length === 0) {
       return null;
-    } else {
-      // TODO: maybe make it able to use some aggregation?
-      return _.last(serie.datapoints)[0];
+    }
+    // TODO: maybe make it able to use some aggregation?
+    switch(aggregation) {
+      case Aggregation.LAST:
+        return _.last(serie.datapoints)[0];
+      case Aggregation.MIN:
+        return _.min(serie.datapoints.map(row => row[0]));
+      case Aggregation.MAX:
+        return _.max(serie.datapoints.map(row => row[0]));
+      default:
+        throw new Error(`Unknown aggregation type: ${aggregation}`)
     }
   }
 
   get gaugeMinValue(): number | null {
-    if(this.isUsingMetricForMinValue === false) {
+    if(this.isUsingMetricForGaugeMinValue === false) {
       return this.minValue;
     }
-    const serie = this._getSerieByTarget(this.minValueMetric);
-    return this._getLastValueFromSerie(serie);
+    const serie = this._getSerieByTarget(this.minValueGaugeMetric);
+    return this._getAggregatedValueFromSerie(serie);
   }
 
   get maxValue(): number {
@@ -840,22 +901,22 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.maxValue = alias;
   }
 
-  get isUsingMetricForMaxValue(): boolean {
+  get isUsingMetricForGaugeMaxValue(): boolean {
     return this.panel.gaugeMaxValue.isUsingMetric;
   }
 
-  set isUsingMetricForMaxValue(val: boolean) {
+  set isUsingMetricForGaugeMaxValue(val: boolean) {
     this.panel.gaugeMaxValue.isUsingMetric = val;
   }
 
-  get maxValueMetric(): string | null {
-    if(this.isUsingMetricForMaxValue === false) {
+  get maxGaugeValueMetric(): string | null {
+    if(this.isUsingMetricForGaugeMaxValue === false) {
       return null;
     }
     return this.panel.gaugeMaxValue.metric;
   }
 
-  set maxValueMetric(metric: string | null) {
+  set maxGaugeValueMetric(metric: string | null) {
     this.panel.gaugeMaxValue.metric = metric;
   }
 
@@ -867,23 +928,93 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.gaugeMinValue.value = value;
   }
 
-  get isUsingMetricForMinValue(): boolean {
+  get isUsingMetricForGaugeMinValue(): boolean {
     return this.panel.gaugeMinValue.isUsingMetric;
   }
 
-  set isUsingMetricForMinValue(val: boolean) {
+  set isUsingMetricForGaugeMinValue(val: boolean) {
     this.panel.gaugeMinValue.isUsingMetric = val;
   }
 
-  get minValueMetric(): string | null {
-    if(this.isUsingMetricForMinValue === false) {
+  get minValueGaugeMetric(): string | null {
+    if(this.isUsingMetricForGaugeMinValue === false) {
       return null;
     }
     return this.panel.gaugeMinValue.metric;
   }
 
-  set minValueMetric(metric: string | null) {
+  set minValueGaugeMetric(metric: string | null) {
     this.panel.gaugeMinValue.metric = metric;
+  }
+
+  get isUsingMetricForYScaleMaxValue(): boolean {
+    return this.panel.yScaleMax.isUsingMetric;
+  }
+
+  set isUsingMetricForYScaleMaxValue(val: boolean) {
+    this.panel.yScaleMax.isUsingMetric = val;
+  }
+
+  get isUsingMetricForYScaleMinValue(): boolean {
+    return this.panel.yScaleMin.isUsingMetric;
+  }
+
+  set isUsingMetricForYScaleMinValue(val: boolean) {
+    this.panel.yScaleMin.isUsingMetric = val;
+  }
+
+  get yScaleMinValue(): number {
+    return this.panel.yScaleMin.value;
+  }
+
+  set yScaleMinValue(value: number) {
+    this.panel.yScaleMin.value = value;
+  }
+
+  get yScaleMaxValue(): number {
+    return this.panel.yScaleMax.value;
+  }
+
+  set yScaleMaxValue(value: number) {
+    this.panel.yScaleMax.value = value;
+  }
+
+  get minValueYScaleMetric(): string | null {
+    if(this.isUsingMetricForYScaleMinValue === false) {
+      return null;
+    }
+    return this.panel.yScaleMin.metric;
+  }
+
+  set minValueYScaleMetric(metric: string | null) {
+    this.panel.yScaleMin.metric = metric;
+  }
+
+  get maxValueYScaleMetric(): string | null {
+    if(this.isUsingMetricForYScaleMaxValue === false) {
+      return null;
+    }
+    return this.panel.yScaleMax.metric;
+  }
+
+  set maxValueYScaleMetric(metric: string | null) {
+    this.panel.yScaleMax.metric = metric;
+  }
+
+  get yScaleMin(): number | null {
+    if(this.isUsingMetricForYScaleMinValue === false) {
+      return this.yScaleMinValue;
+    }
+    const serie = this._getSerieByTarget(this.minValueYScaleMetric);
+    return this._getAggregatedValueFromSerie(serie);
+  }
+
+  get yScaleMax(): number | null {
+    if(this.isUsingMetricForYScaleMaxValue === false) {
+      return this.yScaleMaxValue;
+    }
+    const serie = this._getSerieByTarget(this.maxValueYScaleMetric);
+    return this._getAggregatedValueFromSerie(serie);
   }
 
   get valueDecimals(): number {
