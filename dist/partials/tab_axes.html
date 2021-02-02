@@ -1,0 +1,105 @@
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> X-axis ticks orientation </label>
+  <div class="gf-form-select-wrapper">
+    <select class="gf-form-input width-12"
+      ng-model="ctrl.xAxisOrientation"
+      ng-options="orientation for orientation in ctrl.ticksOrientation"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+  </div>
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> X-axis ticks format </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.xAxisTickFormat"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> X-axis label </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.xAxisLabel"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Y-axis label </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    ng-model="ctrl.yAxisLabel"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Y-axis min value </label>
+
+  <input
+    ng-if="!ctrl.isUsingMetricForYScaleMinValue"
+    placeholder="auto"
+    type="number"
+    class="gf-form-input width-12"
+    ng-model="ctrl.yScaleMinValue"
+    ng-blur="ctrl.onConfigChange()"
+  >
+  <div ng-if="ctrl.isUsingMetricForYScaleMinValue" class="gf-form-select-wrapper width-12">
+    <select
+      class="gf-form-input"
+      ng-model="ctrl.minValueYScaleMetric"
+      ng-options="metric for metric in ctrl.metricNames"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+  </div>
+
+  <label class="gf-form-label query-keyword width-6">
+    <i class="fa fa-info" bs-tooltip="'Enable to select a metric with dynamic value'"></i>
+    &nbsp; Use metric
+  </label>
+
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="ctrl.isUsingMetricForYScaleMinValue"
+  ></gf-form-switch>
+</div>
+
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Y-axis max value </label>
+
+  <input
+    ng-if="!ctrl.isUsingMetricForYScaleMaxValue"
+    placeholder="auto"
+    type="number"
+    class="gf-form-input width-12"
+    ng-model="ctrl.yScaleMaxValue"
+    ng-blur="ctrl.onConfigChange()"
+  >
+  <div ng-if="ctrl.isUsingMetricForYScaleMaxValue" class="gf-form-select-wrapper width-12">
+    <select
+      class="gf-form-input"
+      ng-model="ctrl.maxValueYScaleMetric"
+      ng-options="metric for metric in ctrl.metricNames"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+  </div>
+
+  <label class="gf-form-label query-keyword width-6">
+    <i class="fa fa-info" bs-tooltip="'Enable to select a metric with dynamic value'"></i>
+    &nbsp; Use metric
+  </label>
+
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="ctrl.isUsingMetricForYScaleMaxValue"
+    on-change="ctrl.onConfigChange()"
+  ></gf-form-switch>
+</div>
