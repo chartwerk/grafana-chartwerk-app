@@ -2,17 +2,17 @@
   <label class="gf-form-label query-keyword width-12"> Min </label>
 
   <input
-    ng-if="!ctrl.isUsingMetricForMinValue"
+    ng-if="!ctrl.isUsingMetricForGaugeMinValue"
     placeholder="auto"
     type="number"
     class="gf-form-input width-12"
     ng-model="ctrl.minValue"
     ng-blur="ctrl.onConfigChange()"
   >
-  <div ng-if="ctrl.isUsingMetricForMinValue" class="gf-form-select-wrapper width-12">
+  <div ng-if="ctrl.isUsingMetricForGaugeMinValue" class="gf-form-select-wrapper width-12">
     <select
       class="gf-form-input"
-      ng-model="ctrl.minValueMetric"
+      ng-model="ctrl.minValueGaugeMetric"
       ng-options="metric for metric in ctrl.metricNames"
       ng-change="ctrl.onConfigChange()"
     ></select>
@@ -26,24 +26,24 @@
   <gf-form-switch
     class="gf-form"
     label=''
-    checked="ctrl.isUsingMetricForMinValue"
+    checked="ctrl.isUsingMetricForGaugeMinValue"
   ></gf-form-switch>
 </div>
 
 <div class="gf-form">
   <label class="gf-form-label query-keyword width-12"> Max </label>
   <input
-    ng-if="!ctrl.isUsingMetricForMaxValue"
+    ng-if="!ctrl.isUsingMetricForGaugeMaxValue"
     placeholder="auto"
     type="number"
     class="gf-form-input width-12"
     ng-model="ctrl.maxValue"
     ng-blur="ctrl.onConfigChange()"
   >
-  <div ng-if="ctrl.isUsingMetricForMaxValue" class="gf-form-select-wrapper width-12">
+  <div ng-if="ctrl.isUsingMetricForGaugeMaxValue" class="gf-form-select-wrapper width-12">
     <select
       class="gf-form-input"
-      ng-model="ctrl.maxValueMetric"
+      ng-model="ctrl.maxGaugeValueMetric"
       ng-options="metric for metric in ctrl.metricNames"
       ng-change="ctrl.onConfigChange()"
     ></select>
@@ -55,7 +55,7 @@
   <gf-form-switch
     class="gf-form"
     label=''
-    checked="ctrl.isUsingMetricForMaxValue"
+    checked="ctrl.isUsingMetricForGaugeMaxValue"
   ></gf-form-switch>
 </div>
 
