@@ -96,6 +96,7 @@
       ng-options="position for position in ctrl.iconPositions"
       ng-change="ctrl.onConfigChange()"
     ></select>
+
     <label class="gf-form-label query-keyword width-6"> URL </label>
     <input
       type="text"
@@ -104,6 +105,7 @@
       ng-model="icon.url"
       ng-blur="ctrl.onConfigChange()"
     />
+
     <label class="gf-form-label query-keyword width-6">
       Size
       <i class="fa fa-info" bs-tooltip="'Icon size in pixels'"></i>
@@ -114,8 +116,19 @@
       ng-model="icon.size"
       ng-blur="ctrl.onConfigChange()"
     />
+
+    <button
+      ng-click="ctrl.deleteGaugeIconByIdx(idx)"
+      class="query-editor-row__action"
+      bs-tooltip="'Remove icon'"
+    >
+      <a class="pointer">
+        <i class="fa fa-fw fa-trash"></i>
+      </a>
+    </button>
   </div>
-  <div class="gf-form">
+
+  <div class="gf-form" ng-repeat="(idx, condition) in icon.conditions track by $index">
     <label class="gf-form-label query-keyword width-6"> Condition </label>
     <select
       class="gf-form-input width-12"
@@ -125,25 +138,31 @@
     ></select>
     <select
       class="gf-form-input width-6"
-      ng-model="icon.condition"
+      ng-model="icon.conditions[idx]"
       ng-options="condition for condition in ctrl.conditions"
       ng-change="ctrl.onConfigChange()"
     ></select>
     <input
       class="gf-form-input width-6"
       type="number"
-      ng-model="icon.value"
+      ng-model="icon.values[idx]"
       ng-blur="ctrl.onConfigChange()"
     >
-
     <button
-      ng-click="ctrl.deleteGaugeIconByIdx(idx)"
+      ng-click="ctrl.deleteCondition(icon, idx)"
       class="query-editor-row__action"
-      bs-tooltip="'Delete'"
+      bs-tooltip="'Remove condition'"
     >
       <a class="pointer">
         <i class="fa fa-fw fa-trash"></i>
       </a>
+    </button>
+  </div>
+  <div class="gf-form">
+    <button class="btn btn-secondary width-12" ng-click="ctrl.addCondition(icon)">
+      <i class="fa fa-plus"></i>
+      &ensp;Add Condition
+      <tip>Conditions are checked with AND operator</tip>
     </button>
   </div>
 </div>

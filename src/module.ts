@@ -79,8 +79,8 @@ type IconConfig = {
   position: IconPosition;
   url: string;
   metric: string;
-  condition: Condition;
-  value: number;
+  conditions: Condition[];
+  values: number[];
   size: number;
 }
 type AxisRange = [number, number] | undefined;
@@ -637,7 +637,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
         const serie = this._getSerieByTarget(icon.metric);
         const lastValue = this._getAggregatedValueFromSerie(serie);
         if(lastValue !== null) {
-          if(this._satifiesCondition(lastValue, icon.value, icon.condition)) {
+          if(this._satifiesCondition(lastValue, icon.values, icon.conditions)) {
             const position = this._getChartwerkGaugePosition(icon.position);
             return { src: icon.url, position, size: icon.size  };
           }
@@ -1110,11 +1110,23 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       url: '',
       metric: '',
       position: IconPosition.UPPER_LEFT,
-      condition: Condition.EQUAL,
-      value: 0,
+      conditions: [Condition.EQUAL],
+      values: [0],
       size: DEFAULT_GAUGE_ICON_SIZE
     }
     this.panel.gaugeIcons.push(defaultIcon);
+    this.onConfigChange();
+  }
+
+  addCondition(icon: IconConfig): void {
+    icon.conditions.push(Condition.EQUAL);
+    icon.values.push(0);
+    this.onConfigChange();
+  }
+
+  deleteCondition(icon: IconConfig, idx: number) {
+    icon.conditions.splice(idx, 1);
+    icon.values.splice(idx, 1);
     this.onConfigChange();
   }
 
@@ -1169,37 +1181,40 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
   }
 
-  private _satifiesCondition(leftValue: number, rightValue: number, condition: Condition): boolean {
-    switch(condition) {
-      case Condition.EQUAL:
-        if(leftValue === rightValue) {
-          return true;
-        }
-        break;
-      case Condition.GREATER:
-        if(leftValue > rightValue) {
-          return true;
-        }
-        break;
-      case Condition.LESS:
-        if(leftValue < rightValue) {
-          return true;
-        }
-        break;
-      case Condition.GREATER_OR_EQUAL:
-        if(leftValue >= rightValue) {
-          return true;
-        }
-        break;
-      case Condition.LESS_OR_EQUAL:
-        if(leftValue <= rightValue) {
-          return true;
-        }
-        break;
-      default:
-        throw new Error(`Unknown condition: ${this.upperLeftIcon.condition}`);
+  private _satifiesCondition(leftValue: number, rightValues: number[], conditions: Condition[]): boolean {
+    for(let idx = 0; idx < conditions.length; idx++) {
+      switch(conditions[idx]) {
+        case Condition.EQUAL:
+          if(leftValue !== rightValues[idx]) {
+            return false;
+          }
+          break;
+        case Condition.GREATER:
+          if(leftValue < rightValues[idx]) {
+            return false;
+          }
+          break;
+        case Condition.LESS:
+          if(leftValue > rightValues[idx]) {
+            return false;
+          }
+          break;
+        case Condition.GREATER_OR_EQUAL:
+          if(leftValue <= rightValues[idx]) {
+            return false;
+          }
+          break;
+        case Condition.LESS_OR_EQUAL:
+          if(leftValue >= rightValues[idx]) {
+            return false;
+          }
+          break;
+        default:
+          throw new Error(`Unknown condition: ${conditions[idx]}`);
+      }
     }
-    return false;
+    
+    return true;
   }
 
   private _checkGrafanaVersion(): void {
