@@ -87,137 +87,70 @@
 <br/>
 
 <h5 class="section-heading">Icons</h5>
-<div class="gf-form">
-  <label class="gf-form-label width-12">
-    Upper left icon
-  </label>
-  <gf-form-switch
-    class="gf-form"
-    label=''
-    checked="ctrl.upperLeftIcon.enabled"
-    on-change="ctrl.onConfigChange()"
-  ></gf-form-switch>
-</div>
-<div class="gf-form" ng-if="ctrl.upperLeftIcon.enabled">
-  <label class="gf-form-label query-keyword width-4">
-    URL
-  </label>
-  <input
-    type="text"
-    class="gf-form-input width-12"
-    data-placement="right"
-    ng-model="ctrl.upperLeftIcon.url"
-    ng-blur="ctrl.onConfigChange()"
-  />
-  <label class="gf-form-label query-keyword width-5">
-    Condition
-  </label>
-  <select
-    class="gf-form-input"
-    ng-model="ctrl.upperLeftIcon.metric"
-    ng-options="metric for metric in ctrl.metricNames"
-    ng-change="ctrl.onConfigChange()"
-  ></select>
-  <select
-    class="gf-form-input"
-    ng-model="ctrl.upperLeftIcon.condition"
-    ng-options="condition for condition in ctrl.conditions"
-    ng-change="ctrl.onConfigChange()"
-  ></select>
-  <input
-    class="gf-form-input width-12"
-    type="number"
-    ng-model="ctrl.upperLeftIcon.value"
-    ng-blur="ctrl.onConfigChange()"
-  >
+<div class="icon-config-wrapper" ng-repeat="(idx, icon) in ctrl.gaugeIcons track by $index">
+  <div class="gf-form">
+    <label class="gf-form-label query-keyword width-6"> Icon Position </label>
+    <select
+      class="gf-form-input width-8"
+      ng-model="icon.position"
+      ng-options="position for position in ctrl.iconPositions"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+    <label class="gf-form-label query-keyword width-6"> URL </label>
+    <input
+      type="text"
+      class="gf-form-input width-8"
+      data-placement="right"
+      ng-model="icon.url"
+      ng-blur="ctrl.onConfigChange()"
+    />
+    <label class="gf-form-label query-keyword width-6">
+      Size
+      <i class="fa fa-info" bs-tooltip="'Icon size in pixels'"></i>
+    </label>
+    <input
+      type="number"
+      class="gf-form-input width-6"
+      ng-model="icon.size"
+      ng-blur="ctrl.onConfigChange()"
+    />
+  </div>
+  <div class="gf-form">
+    <label class="gf-form-label query-keyword width-6"> Condition </label>
+    <select
+      class="gf-form-input width-12"
+      ng-model="icon.metric"
+      ng-options="metric for metric in ctrl.metricNames"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+    <select
+      class="gf-form-input width-6"
+      ng-model="icon.condition"
+      ng-options="condition for condition in ctrl.conditions"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+    <input
+      class="gf-form-input width-6"
+      type="number"
+      ng-model="icon.value"
+      ng-blur="ctrl.onConfigChange()"
+    >
+
+    <button
+      ng-click="ctrl.deleteGaugeIconByIdx(idx)"
+      class="query-editor-row__action"
+      bs-tooltip="'Delete'"
+    >
+      <a class="pointer">
+        <i class="fa fa-fw fa-trash"></i>
+      </a>
+    </button>
+  </div>
 </div>
 
 <div class="gf-form">
-  <label class="gf-form-label width-12">
-    Upper right icon
-  </label>
-  <gf-form-switch
-    class="gf-form"
-    label=''
-    checked="ctrl.upperRightIcon.enabled"
-    on-change="ctrl.onConfigChange()"
-  ></gf-form-switch>
-</div>
-<div class="gf-form" ng-if="ctrl.upperRightIcon.enabled">
-  <label class="gf-form-label query-keyword width-4">
-    URL
-  </label>
-  <input
-    type="text"
-    class="gf-form-input width-12"
-    data-placement="right"
-    ng-model="ctrl.upperRightIcon.url"
-    ng-blur="ctrl.onConfigChange()"
-  />
-  <label class="gf-form-label query-keyword width-5">
-    Condition
-  </label>
-  <select
-    class="gf-form-input"
-    ng-model="ctrl.upperRightIcon.metric"
-    ng-options="metric for metric in ctrl.metricNames"
-    ng-change="ctrl.onConfigChange()"
-  ></select>
-  <select
-    class="gf-form-input"
-    ng-model="ctrl.upperRightIcon.condition"
-    ng-options="condition for condition in ctrl.conditions"
-    ng-change="ctrl.onConfigChange()"
-  ></select>
-  <input
-    class="gf-form-input width-12"
-    type="number"
-    ng-model="ctrl.upperRightIcon.value"
-    ng-blur="ctrl.onConfigChange()"
-  >
-</div>
-
-<div class="gf-form">
-  <label class="gf-form-label width-12">
-    Middle icon
-  </label>
-  <gf-form-switch
-    class="gf-form"
-    label=''
-    checked="ctrl.middleIcon.enabled"
-    on-change="ctrl.onConfigChange()"
-  ></gf-form-switch>
-</div>
-<div class="gf-form" ng-if="ctrl.middleIcon.enabled">
-  <label class="gf-form-label query-keyword width-4">
-    URL
-  </label>
-  <input
-    type="text"
-    class="gf-form-input width-12"
-    data-placement="right"
-    ng-model="ctrl.middleIcon.url"
-    ng-blur="ctrl.onConfigChange()"
-  />
-  <label class="gf-form-label query-keyword width-5">
-    Condition
-  </label>
-  <select
-    class="gf-form-input"
-    ng-model="ctrl.middleIcon.metric"
-    ng-options="metric for metric in ctrl.metricNames"
-    ng-change="ctrl.onConfigChange()"
-  ></select>
-  <select
-    class="gf-form-input"
-    ng-model="ctrl.middleIcon.condition"
-    ng-options="condition for condition in ctrl.conditions"
-    ng-change="ctrl.onConfigChange()"
-  ></select>
-  <input
-    class="gf-form-input width-12"
-    type="number"
-    ng-model="ctrl.middleIcon.value"
-    ng-blur="ctrl.onConfigChange()"
-  >
+  <button class="btn btn-secondary width-12" ng-click="ctrl.addGaugeIcon()">
+    <i class="fa fa-plus"></i>
+    &ensp;Add Icon
+  </button>
 </div>

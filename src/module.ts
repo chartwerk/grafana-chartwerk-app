@@ -41,6 +41,7 @@ const PLUGIN_PATH = 'public/plugins/corpglory-chartwerk-panel';
 const PARTIALS_PATH = `${PLUGIN_PATH}/partials`;
 const MILLISECONDS_IN_MINUTE = 60 * 1000;
 const DEFAULT_GAUGE_COLOR = '#37872d';
+const DEFAULT_GAUGE_ICON_SIZE = 40;
 
 
 enum TimeRangeSource {
@@ -68,12 +69,19 @@ enum Aggregation {
   LAST = 'last'
 }
 
+enum IconPosition {
+  UPPER_LEFT = 'Upper left',
+  MIDDLE = 'Middle',
+  UPPER_RIGHT = 'Upper right'
+}
+
 type IconConfig = {
-  enabled: boolean;
+  position: IconPosition;
   url: string;
   metric: string;
   condition: Condition;
   value: number;
+  size: number;
 }
 type AxisRange = [number, number] | undefined;
 
@@ -132,27 +140,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       metric: null
     },
     unit: 'none',
-    upperLeftIcon: {
-      enabled: false,
-      url: '',
-      metric: '',
-      condition: Condition.EQUAL,
-      value: 0
-    },
-    upperRightIcon: {
-      enabled: false,
-      url: '',
-      metric: '',
-      condition: Condition.EQUAL,
-      value: 0
-    },
-    middleIcon: {
-      enabled: false,
-      url: '',
-      metric: '',
-      condition: Condition.EQUAL,
-      value: 0
-    },
+    gaugeIcons: [],
     yScaleMin: {
       value: null,
       isUsingMetric: false,
@@ -173,6 +161,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   mode = _.map(Mode, (name: string) => name);
   conditions = _.map(Condition, (name: string) => name);
   warning = '';
+  iconPositions = IconPosition;
 
   chartContainer?: HTMLElement;
   chart: any;
@@ -643,36 +632,19 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       threshold => ({ color: threshold.color, value: this._getThresholdValue(threshold) })
     );
 
-    let icons = [];
-    if(this.upperLeftIcon.enabled) {
-      const serie = this._getSerieByTarget(this.upperLeftIcon.metric);
-      const lastValue = this._getAggregatedValueFromSerie(serie);
-      if(lastValue !== null) {
-        if(this._satifiesCondition(lastValue, this.upperLeftIcon.value, this.upperLeftIcon.condition)) {
-          icons.push({ src: this.upperLeftIcon.url, position: 'left', size: 50  });
+    const icons = this.gaugeIcons
+      .map(icon => {
+        const serie = this._getSerieByTarget(icon.metric);
+        const lastValue = this._getAggregatedValueFromSerie(serie);
+        if(lastValue !== null) {
+          if(this._satifiesCondition(lastValue, icon.value, icon.condition)) {
+            const position = this._getChartwerkGaugePosition(icon.position);
+            return { src: icon.url, position, size: icon.size  };
+          }
         }
-      }
-    }
-
-    if(this.upperRightIcon.enabled) {
-      const serie = this._getSerieByTarget(this.upperRightIcon.metric);
-      const lastValue = this._getAggregatedValueFromSerie(serie);
-      if(lastValue !== null) {
-        if(this._satifiesCondition(lastValue, this.upperRightIcon.value, this.upperRightIcon.condition)) {
-          icons.push({ src: this.upperRightIcon.url, position: 'right', size: 50  });
-        }
-      }
-    }
-
-    if(this.middleIcon.enabled) {
-      const serie = this._getSerieByTarget(this.middleIcon.metric);
-      const lastValue = this._getAggregatedValueFromSerie(serie);
-      if(lastValue !== null) {
-        if(this._satifiesCondition(lastValue, this.middleIcon.value, this.middleIcon.condition)) {
-          icons.push({ src: this.middleIcon.url, position: 'middle', size: 40  });
-        }
-      }
-    }
+        return undefined;
+      })
+      .filter(icon => icon !== undefined);
 
     const options = {
       eventsCallbacks,
@@ -885,6 +857,19 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
   }
 
+  private _getChartwerkGaugePosition(iconPosition: IconPosition): string {
+    switch(iconPosition) {
+      case IconPosition.MIDDLE:
+        return 'middle';
+      case IconPosition.UPPER_LEFT:
+        return 'left';
+      case IconPosition.UPPER_RIGHT:
+        return 'right';
+      default:
+        throw new Error(`Unknown Icon Position type: ${iconPosition}`);
+    }
+  }
+
   get gaugeMinValue(): number | null {
     if(this.isUsingMetricForGaugeMinValue === false) {
       return this.minValue;
@@ -1081,6 +1066,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return this.panel.gaugeThresholds;
   }
 
+  get gaugeIcons(): IconConfig[] {
+    return this.panel.gaugeIcons;
+  }
+
   get metricNames(): string[] {
     if(
       this.series === undefined ||
@@ -1114,6 +1103,26 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       throw new Error(`Gauge Threshold doesn't exist for idx: ${idx} `);
     }
     return this.panel.gaugeThresholds[idx];
+  }
+
+  addGaugeIcon(): void {
+    const defaultIcon = {
+      url: '',
+      metric: '',
+      position: IconPosition.UPPER_LEFT,
+      condition: Condition.EQUAL,
+      value: 0,
+      size: DEFAULT_GAUGE_ICON_SIZE
+    }
+    this.panel.gaugeIcons.push(defaultIcon);
+    this.onConfigChange();
+  }
+
+  deleteGaugeIconByIdx(idx: number): void {
+    let icons = _.cloneDeep(this.gaugeIcons);
+    icons.splice(idx, 1);
+    this.panel.gaugeIcons = icons;
+    this.onConfigChange();
   }
 
   // TODO: not "| undefined"
