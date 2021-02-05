@@ -60,7 +60,7 @@ enum Condition {
   GREATER = '>',
   LESS = '<',
   GREATER_OR_EQUAL = '>=',
-  LESS_OR_EQUAL = '>=',
+  LESS_OR_EQUAL = '<=',
 }
 
 enum Aggregation {
