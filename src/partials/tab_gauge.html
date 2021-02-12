@@ -86,6 +86,22 @@
 
 <br/>
 
+<h5 class="section-heading">Link</h5>
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12">
+    URL
+  </label>
+  <input
+    type="text"
+    class="gf-form-input width-12"
+    data-placement="right"
+    ng-model="ctrl.gaugeLink"
+    ng-blur="ctrl.onConfigChange()"
+  />
+</div>
+
+<br/>
+
 <h5 class="section-heading">Icons</h5>
 <div class="icon-config-wrapper" ng-repeat="(idx, icon) in ctrl.gaugeIcons track by $index">
   <div class="gf-form">

@@ -127,6 +127,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     lowerBound: '',
     hiddenMetrics: [],
     gaugeThresholds: [],
+    gaugeUrl: '',
     defaultGaugeColor: DEFAULT_GAUGE_COLOR,
     valueDecimals: 1,
     gaugeMaxValue: {
@@ -1168,6 +1169,30 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set shouldDisplayWarnings(displayed: boolean) {
     this.panel.displayWarnings = displayed;
+  }
+
+  get gaugeLink(): string {
+    return this.panel.gaugeLink;
+  }
+
+  set gaugeLink(url: string) {
+    this.panel.gaugeLink = url;
+  }
+
+  get isChartwerkContainerClickable(): boolean {
+    if(this.gaugeLink === undefined || this.gaugeLink.length === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  goToLink(): void {
+    if(this.gaugeLink === undefined || this.gaugeLink.length === 0) {
+      return;
+    }
+    const url = this.templateSrv.replace(this.gaugeLink);
+    const redirectWindow = window.open(url, '_blank');
+    redirectWindow.location;
   }
 
   updateHiddenMetrics(metricName: string) {
