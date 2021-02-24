@@ -136,12 +136,21 @@
   resolved "https://registry.yarnpkg.com/@chartwerk/base/-/base-0.2.4.tgz#dc8f8a65b9a8d56e32b1e08e8ffd350aba67002f"
   integrity sha512-oLqYAjtOOK1fl7+bruMarG1V5QN7edxwQcm9m2f+GnBQwNzynE4/WozUoWy5K5uQ780CH4PNuBrYPV4iuhXZlQ==
 
-"@chartwerk/line-chart@^0.2.3":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@chartwerk/line-chart/-/line-chart-0.2.4.tgz#8581c1f3c583565be4fbe26440d8634777d571d5"
-  integrity sha512-U5kaLSZx5MU3yDzgm59wOCSskGQSuRWgs7yYNm+fpOEJ+H4ocHbR8WQth5U+0AEJRWvEL+NC3GLhjLDZh5d5nA==
+"@chartwerk/core@github:chartwerk/core#dist":
+  version "0.1.0"
+  resolved "https://codeload.github.com/chartwerk/core/tar.gz/ca53d7a950ed8d2e34c490badd49b25326bd76a9"
+
+"@chartwerk/gauge-pod@github:chartwerk/gauge-pod#gauge-updates":
+  version "0.1.0"
+  resolved "https://codeload.github.com/chartwerk/gauge-pod/tar.gz/8fd0acf774452f97b12f4277790fec7d7dd6157a"
   dependencies:
-    "@chartwerk/base" "^0.2.4"
+    "@chartwerk/core" "github:chartwerk/core#dist"
+
+"@chartwerk/line-chart@github:chartwerk/line-chart#f93fcf7783e29a87f61a5209bbbc9483028bb43d":
+  version "0.2.4"
+  resolved "https://codeload.github.com/chartwerk/line-chart/tar.gz/f93fcf7783e29a87f61a5209bbbc9483028bb43d"
+  dependencies:
+    "@chartwerk/core" "github:chartwerk/core#dist"
 
 "@emotion/cache@^10.0.27", "@emotion/cache@^10.0.9":
   version "10.0.29"
