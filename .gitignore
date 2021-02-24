@@ -1,4 +1,3 @@
-dist
 node_modules
 .dotrun.json
 package-lock.json

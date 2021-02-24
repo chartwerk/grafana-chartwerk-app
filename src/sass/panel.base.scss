@@ -42,6 +42,9 @@ $timepickerHeight: 225px;
 }
 .chartwerk-container {
   height: 90%;
+  &.clickable {
+    cursor: pointer;
+  }
 }
 .chartwerk-warning {
   color: yellow;
@@ -51,4 +54,7 @@ $timepickerHeight: 225px;
 }
 .timeformat-selector {
   margin-left: 4px;
+}
+.icon-config-wrapper {
+  margin-bottom: 16px;
 }

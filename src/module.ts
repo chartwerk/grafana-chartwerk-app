@@ -13,6 +13,7 @@ import { isVersionGtOrEq } from './utils/version';
 
 import { ChartwerkBarChart, BarOptions, BarTimeSerie } from '@chartwerk/bar-chart';
 import { ChartwerkLineChart, LineOptions, LineTimeSerie, Mode, TimeFormat, TickOrientation } from '@chartwerk/line-chart';
+import { ChartwerkGaugePod } from '@chartwerk/gauge-pod';
 
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
@@ -20,8 +21,16 @@ import { VariableSrv } from 'grafana/app/features/templating/variable_srv';
 import { QueryVariable } from 'grafana/app/features/templating/query_variable';
 import { appEvents } from 'grafana/app/core/core';
 
-import { PanelEvents, TimeRange, DateTime, AbsoluteTimeRange, dateTimeForTimeZone } from '@grafana/data';
-// TODO: import and use ChartWerk colors from @chartwerk/base
+import {
+  PanelEvents,
+  TimeRange,
+  DateTime,
+  AbsoluteTimeRange,
+  dateTimeForTimeZone,
+  getValueFormat,
+  formattedValueToString
+} from '@grafana/data';
+// TODO: import and use ChartWerk colors from @chartwerk/core
 import { colors as grafanaColorPalette } from '@grafana/ui';
 
 import * as moment from 'moment';
@@ -31,6 +40,8 @@ import * as _ from 'lodash';
 const PLUGIN_PATH = 'public/plugins/corpglory-chartwerk-panel';
 const PARTIALS_PATH = `${PLUGIN_PATH}/partials`;
 const MILLISECONDS_IN_MINUTE = 60 * 1000;
+const DEFAULT_GAUGE_COLOR = '#37872d';
+const DEFAULT_GAUGE_ICON_SIZE = 40;
 
 
 enum TimeRangeSource {
@@ -40,11 +51,49 @@ enum TimeRangeSource {
 
 enum Pod {
   LINE = 'line',
-  BAR = 'bar'
+  BAR = 'bar',
+  GAUGE = 'gauge'
 }
 
+enum Condition {
+  EQUAL = '=',
+  GREATER = '>',
+  LESS = '<',
+  GREATER_OR_EQUAL = '>=',
+  LESS_OR_EQUAL = '<=',
+}
+
+enum Aggregation {
+  MIN = 'min',
+  MAX = 'max',
+  LAST = 'last'
+}
+
+enum IconPosition {
+  UPPER_LEFT = 'Upper left',
+  MIDDLE = 'Middle',
+  UPPER_RIGHT = 'Upper right'
+}
+
+type IconConfig = {
+  position: IconPosition;
+  url: string;
+  metric: string;
+  conditions: Condition[];
+  values: number[];
+  size: number;
+}
+type AxisRange = [number, number] | undefined;
+
+// TODO: agg Gauge types when all pods are inherited from the same @chartwerk/core version
 type ChartwerkTimeSerie = BarTimeSerie | LineTimeSerie;
 type ChartwerkOptions = BarOptions | LineOptions;
+type GaugeThreshold = {
+  color: string,
+  value: number,
+  isUsingMetric: boolean,
+  metric: string
+}
 
 if (window.grafanaBootData.user.lightTheme) {
   window.System.import('plugins/corpglory-chartwerk-panel/css/panel.light.css!');
@@ -77,6 +126,32 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     upperBound: '',
     lowerBound: '',
     hiddenMetrics: [],
+    gaugeThresholds: [],
+    gaugeUrl: '',
+    defaultGaugeColor: DEFAULT_GAUGE_COLOR,
+    valueDecimals: 1,
+    gaugeMaxValue: {
+      value: null,
+      isUsingMetric: false,
+      metric: null
+    },
+    gaugeMinValue: {
+      value: null,
+      isUsingMetric: false,
+      metric: null
+    },
+    unit: 'none',
+    gaugeIcons: [],
+    yScaleMin: {
+      value: null,
+      isUsingMetric: false,
+      metric: null
+    },
+    yScaleMax: {
+      value: null,
+      isUsingMetric: false,
+      metric: null
+    },
   };
 
   tooltip?: GraphTooltip;
@@ -85,7 +160,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   podTypes = _.map(Pod, (name: string) => name);
   timeFormats = _.map(TimeFormat, (name: string) => name);
   mode = _.map(Mode, (name: string) => name);
+  conditions = _.map(Condition, (name: string) => name);
   warning = '';
+  iconPositions = IconPosition;
 
   chartContainer?: HTMLElement;
   chart: any;
@@ -94,6 +171,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   series: ChartwerkTimeSerie[] = [];
 
   isPanelTimeRangeSupported = true;
+
+  isFirstRendering = true;
 
   /** @ngInject */
   constructor(
@@ -245,11 +324,44 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   onInitEditMode(): void {
     this.addEditorTab('Visualization', `${PARTIALS_PATH}/tab_visualization.html`, 2);
-    this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
+    if(this.pod !== Pod.GAUGE) {
+      this.addEditorTab('Axes', `${PARTIALS_PATH}/tab_axes.html`, 3);
+    }
     if(this.pod === Pod.LINE) {
       this.addEditorTab('Confidence', `${PARTIALS_PATH}/tab_confidence.html`, 4);
     }
     this.addEditorTab('Template variables', `${PARTIALS_PATH}/tab_template_variables.html`, 5);
+    if(this.pod === Pod.GAUGE) {
+      this.addEditorTab('Gauge', `${PARTIALS_PATH}/tab_gauge.html`, 6);
+      this.addEditorTab('Colors', `${PARTIALS_PATH}/tab_colors.html`, 7);
+    }
+  }
+
+  private _getThresholdValue(threshold: GaugeThreshold): number | null {
+    if(!threshold.isUsingMetric) {
+      return threshold.value;
+    }
+
+    const serie = this._getSerieByTarget(threshold.metric);
+    if(serie === undefined) {
+      return null;
+    }
+
+    if(serie.datapoints.length === 0) {
+      return null;
+    } else {
+      // TODO: maybe make it able to use some aggregation?
+      return _.last(serie.datapoints)[0];
+    }
+  }
+
+  private _getSerieByTarget(target: string): ChartwerkTimeSerie | undefined {
+    const serie = _.find(this.series, serie => serie.target === target);
+    if(serie === undefined) {
+      console.error(`Can't find metric named ${target}`);
+      return undefined;
+    }
+    return serie;
   }
 
   onRender(): void {
@@ -260,17 +372,33 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     switch(this.pod) {
       case Pod.LINE:
         // TODO: do not re-create pod instance each time, just update series / options
+        // @ts-ignore
         this.chart = new ChartwerkLineChart(this.chartContainer, this.series, this.chartOptions);
         this.chart.render();
         break;
 
       case Pod.BAR:
+        // @ts-ignore
         this.chart = new ChartwerkBarChart(this.chartContainer, this.series, this.chartOptions);
         this.chart.render();
         break;
 
+      case Pod.GAUGE:
+        if(this.isFirstRendering) {
+          setTimeout(() => {
+            this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions as any);
+            this.chart.render();
+
+            this.isFirstRendering = false;
+          }, 500);
+        } else {
+          this.chart = new ChartwerkGaugePod(this.chartContainer, this.series, this.chartOptions as any);
+          this.chart.render();
+        }
+        break;
+
       default:
-        throw new Error(`Uknown pod type: ${this.pod}`);
+        throw new Error(`Unknown pod type: ${this.pod}`);
     }
   }
 
@@ -328,12 +456,13 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onVariableUpdate(variable: QueryVariable): void {
-    if (this.variableSrv !== undefined) {
+    if(this.variableSrv !== undefined) {
       this.variableSrv.variableUpdated(variable, true);
     }
   }
 
   onConfigChange(): void {
+    console.log('onConfigChange');
     this.render();
   }
 
@@ -409,12 +538,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
   }
 
-  onZoomIn(range: [number, number]): void {
+  onZoomIn(range: [AxisRange, AxisRange]): void {
     this.tooltip.clear();
-
+    if(range === undefined || range[0] === undefined) {
+      return;
+    }
+    const timestampRange = range[0];
     const timezone = this.dashboard.timezone;
-    const from = dateTimeForTimeZone(timezone, range[0]);
-    const to = dateTimeForTimeZone(timezone, range[1]);
+    const from = dateTimeForTimeZone(timezone, timestampRange[0]);
+    const to = dateTimeForTimeZone(timezone, timestampRange[1]);
 
     switch(this.timeRangeSource) {
       case TimeRangeSource.DASHBOARD:
@@ -466,18 +598,21 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     });
   }
 
+  setUnit(unit: string): void {
+    this.panel.unit = unit;
+    this.onConfigChange();
+  }
+
   get chartOptions(): ChartwerkOptions {
     const eventsCallbacks = {
       zoomIn: this.onZoomIn.bind(this),
       zoomOut: this.onZoomOut.bind(this),
       mouseMove: this.onChartHover.bind(this),
       mouseOut: this.onChartLeave.bind(this),
-      onLegendClick: this.onLegendClick.bind(this)
+      onLegendClick: this.onLegendClick.bind(this),
+      onLegendLabelClick: () => {}
     }
-    const timeInterval = {
-      count: this.timeInterval || this.seriesTimeStep,
-      timeFormat: this.timeFormat
-    }
+
     const renderTicksfromTimestamps = false;
     const tickFormat = {
       xAxis: this.xAxisTickFormat,
@@ -493,17 +628,84 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
     // @ts-ignore
     const timeRange = { from: this.timeRangeOverride.from._i, to: this.timeRangeOverride.to._i }
+
+    const stops = this.gaugeThresholds.map(
+      threshold => ({ color: threshold.color, value: this._getThresholdValue(threshold) })
+    );
+
+    const icons = this.gaugeIcons
+      .map(icon => {
+        const serie = this._getSerieByTarget(icon.metric);
+        const lastValue = this._getAggregatedValueFromSerie(serie);
+        if(lastValue !== null) {
+          if(this._satifiesCondition(lastValue, icon.values, icon.conditions)) {
+            const position = this._getChartwerkGaugePosition(icon.position);
+            return { src: icon.url, position, size: icon.size  };
+          }
+        }
+        return undefined;
+      })
+      .filter(icon => icon !== undefined);
+
     const options = {
       eventsCallbacks,
-      timeInterval,
+      axis: {
+        x: {
+          format: 'time',
+        },
+        y: {
+          format: 'numeric',
+          range: this.yScaleRange
+        }
+      },
       tickFormat,
       renderTicksfromTimestamps,
       labelFormat,
       confidence: this.confidence,
       bounds,
-      timeRange
+      timeRange,
+      maxValue: this.gaugeMaxValue,
+      minValue: this.gaugeMinValue,
+      valueFormatter: this.valueFormatter,
+      stops,
+      defaultColor: this.defaultGaugeColor,
+      icons
     };
+    // @ts-ignore
     return options;
+  }
+
+  get yScaleRange(): AxisRange {
+    if(this.yScaleMin === null && this.yScaleMax === null) {
+      return undefined;
+    }
+    let min = this.yScaleMin;
+    // TODO: refactor core
+    if(min === null) {
+      min = _.min(this.series.map(
+        serie => {
+          return this._getAggregatedValueFromSerie(serie, Aggregation.MIN);
+        }
+      ));
+    }
+    let max = this.yScaleMax;
+    if(max === null) {
+      max = _.max(this.series.map(
+        serie => {
+          return this._getAggregatedValueFromSerie(serie, Aggregation.MAX);
+        }
+      ));
+    }
+    return [min, max];
+  }
+
+  get valueFormatter(): (value: number) => string {
+    const formatter = getValueFormat(this.unit);
+
+    return (value: number) => {
+      const formattedValue = formatter(value, this.valueDecimals);
+      return formattedValueToString(formattedValue);
+    };
   }
 
   get variableSrv(): VariableSrv | undefined {
@@ -575,6 +777,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.yAxisLabel = label;
   }
 
+  get unit(): string {
+    return this.panel.unit;
+  }
+
   get timeRangeOverride(): TimeRange {
     return {
       from: moment(this.panel.timeRangeOverride.from) as DateTime,
@@ -624,12 +830,213 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.upperBound = alias;
   }
 
+  get gaugeMaxValue(): number | null {
+    if(this.isUsingMetricForGaugeMaxValue === false) {
+      return this.maxValue;
+    }
+    const serie = this._getSerieByTarget(this.maxGaugeValueMetric);
+    return this._getAggregatedValueFromSerie(serie);
+  }
+
+  private _getAggregatedValueFromSerie(serie: ChartwerkTimeSerie | undefined, aggregation = Aggregation.LAST): number | null {
+    if(serie === undefined) {
+      return null;
+    }
+    if(serie.datapoints.length === 0) {
+      return null;
+    }
+    // TODO: maybe make it able to use some aggregation?
+    switch(aggregation) {
+      case Aggregation.LAST:
+        return _.last(serie.datapoints)[0];
+      case Aggregation.MIN:
+        return _.min(serie.datapoints.map(row => row[0]));
+      case Aggregation.MAX:
+        return _.max(serie.datapoints.map(row => row[0]));
+      default:
+        throw new Error(`Unknown aggregation type: ${aggregation}`)
+    }
+  }
+
+  private _getChartwerkGaugePosition(iconPosition: IconPosition): string {
+    switch(iconPosition) {
+      case IconPosition.MIDDLE:
+        return 'middle';
+      case IconPosition.UPPER_LEFT:
+        return 'left';
+      case IconPosition.UPPER_RIGHT:
+        return 'right';
+      default:
+        throw new Error(`Unknown Icon Position type: ${iconPosition}`);
+    }
+  }
+
+  get gaugeMinValue(): number | null {
+    if(this.isUsingMetricForGaugeMinValue === false) {
+      return this.minValue;
+    }
+    const serie = this._getSerieByTarget(this.minValueGaugeMetric);
+    return this._getAggregatedValueFromSerie(serie);
+  }
+
+  get maxValue(): number {
+    return this.panel.maxValue;
+  }
+
+  set maxValue(alias: number) {
+    this.panel.maxValue = alias;
+  }
+
+  get isUsingMetricForGaugeMaxValue(): boolean {
+    return this.panel.gaugeMaxValue.isUsingMetric;
+  }
+
+  set isUsingMetricForGaugeMaxValue(val: boolean) {
+    this.panel.gaugeMaxValue.isUsingMetric = val;
+  }
+
+  get maxGaugeValueMetric(): string | null {
+    if(this.isUsingMetricForGaugeMaxValue === false) {
+      return null;
+    }
+    return this.panel.gaugeMaxValue.metric;
+  }
+
+  set maxGaugeValueMetric(metric: string | null) {
+    this.panel.gaugeMaxValue.metric = metric;
+  }
+
+  get minValue(): number {
+    return this.panel.gaugeMinValue.value;
+  }
+
+  set minValue(value: number) {
+    this.panel.gaugeMinValue.value = value;
+  }
+
+  get isUsingMetricForGaugeMinValue(): boolean {
+    return this.panel.gaugeMinValue.isUsingMetric;
+  }
+
+  set isUsingMetricForGaugeMinValue(val: boolean) {
+    this.panel.gaugeMinValue.isUsingMetric = val;
+  }
+
+  get minValueGaugeMetric(): string | null {
+    if(this.isUsingMetricForGaugeMinValue === false) {
+      return null;
+    }
+    return this.panel.gaugeMinValue.metric;
+  }
+
+  set minValueGaugeMetric(metric: string | null) {
+    this.panel.gaugeMinValue.metric = metric;
+  }
+
+  get isUsingMetricForYScaleMaxValue(): boolean {
+    return this.panel.yScaleMax.isUsingMetric;
+  }
+
+  set isUsingMetricForYScaleMaxValue(val: boolean) {
+    this.panel.yScaleMax.isUsingMetric = val;
+  }
+
+  get isUsingMetricForYScaleMinValue(): boolean {
+    return this.panel.yScaleMin.isUsingMetric;
+  }
+
+  set isUsingMetricForYScaleMinValue(val: boolean) {
+    this.panel.yScaleMin.isUsingMetric = val;
+  }
+
+  get yScaleMinValue(): number {
+    return this.panel.yScaleMin.value;
+  }
+
+  set yScaleMinValue(value: number) {
+    this.panel.yScaleMin.value = value;
+  }
+
+  get yScaleMaxValue(): number {
+    return this.panel.yScaleMax.value;
+  }
+
+  set yScaleMaxValue(value: number) {
+    this.panel.yScaleMax.value = value;
+  }
+
+  get minValueYScaleMetric(): string | null {
+    if(this.isUsingMetricForYScaleMinValue === false) {
+      return null;
+    }
+    return this.panel.yScaleMin.metric;
+  }
+
+  set minValueYScaleMetric(metric: string | null) {
+    this.panel.yScaleMin.metric = metric;
+  }
+
+  get maxValueYScaleMetric(): string | null {
+    if(this.isUsingMetricForYScaleMaxValue === false) {
+      return null;
+    }
+    return this.panel.yScaleMax.metric;
+  }
+
+  set maxValueYScaleMetric(metric: string | null) {
+    this.panel.yScaleMax.metric = metric;
+  }
+
+  get yScaleMin(): number | null {
+    if(this.isUsingMetricForYScaleMinValue === false) {
+      return this.yScaleMinValue;
+    }
+    const serie = this._getSerieByTarget(this.minValueYScaleMetric);
+    return this._getAggregatedValueFromSerie(serie);
+  }
+
+  get yScaleMax(): number | null {
+    if(this.isUsingMetricForYScaleMaxValue === false) {
+      return this.yScaleMaxValue;
+    }
+    const serie = this._getSerieByTarget(this.maxValueYScaleMetric);
+    return this._getAggregatedValueFromSerie(serie);
+  }
+
+  get valueDecimals(): number {
+    return this.panel.valueDecimals;
+  }
+
+  set valueDecimals(decimals: number) {
+    this.panel.valueDecimals = decimals;
+  }
+
   get lowerBound(): string {
     return this.panel.lowerBound;
   }
 
   set lowerBound(alias: string) {
     this.panel.lowerBound = alias;
+  }
+
+  get upperLeftIconURL(): string {
+    return this.panel.upperLeftIconURL;
+  }
+
+  set upperLeftIconURL(url: string) {
+    this.panel.upperLeftIconURL = url;
+  }
+
+  get upperLeftIcon(): IconConfig {
+    return this.panel.upperLeftIcon;
+  }
+
+  get upperRightIcon(): IconConfig {
+    return this.panel.upperRightIcon;
+  }
+
+  get middleIcon(): IconConfig {
+    return this.panel.middleIcon;
   }
 
   get pod(): Pod {
@@ -646,6 +1053,89 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   set timeFormat(format: TimeFormat) {
     this.panel.timeFormat = format;
+  }
+
+  get defaultGaugeColor(): string {
+    return this.panel.defaultGaugeColor;
+  }
+
+  set defaultGaugeColor(color: string) {
+    this.panel.defaultGaugeColor = color;
+  }
+
+  get gaugeThresholds(): GaugeThreshold[] {
+    return this.panel.gaugeThresholds;
+  }
+
+  get gaugeIcons(): IconConfig[] {
+    return this.panel.gaugeIcons;
+  }
+
+  get metricNames(): string[] {
+    if(
+      this.series === undefined ||
+      this.series.length === 0
+    ) {
+      return [];
+    }
+    return this.series.map(serie => serie.target);
+  }
+
+  addGaugeThreshold(): void {
+    const defaultThreshold = {
+      value: 0,
+      color: DEFAULT_GAUGE_COLOR,
+      isUsingMetric: false,
+      metric: ''
+    }
+    this.panel.gaugeThresholds.push(defaultThreshold);
+    this.onConfigChange();
+  }
+
+  deleteGaugeThreshold(idx: number): void {
+    let thresholds = _.cloneDeep(this.gaugeThresholds);
+    thresholds.splice(idx, 1);
+    this.panel.gaugeThresholds = thresholds;
+    this.onConfigChange();
+  }
+
+  getGaugeThreshold(idx: number): GaugeThreshold {
+    if(this.panel.gaugeThresholds.length < idx) {
+      throw new Error(`Gauge Threshold doesn't exist for idx: ${idx} `);
+    }
+    return this.panel.gaugeThresholds[idx];
+  }
+
+  addGaugeIcon(): void {
+    const defaultIcon = {
+      url: '',
+      metric: '',
+      position: IconPosition.UPPER_LEFT,
+      conditions: [Condition.EQUAL],
+      values: [0],
+      size: DEFAULT_GAUGE_ICON_SIZE
+    }
+    this.panel.gaugeIcons.push(defaultIcon);
+    this.onConfigChange();
+  }
+
+  addCondition(icon: IconConfig): void {
+    icon.conditions.push(Condition.EQUAL);
+    icon.values.push(0);
+    this.onConfigChange();
+  }
+
+  deleteCondition(icon: IconConfig, idx: number) {
+    icon.conditions.splice(idx, 1);
+    icon.values.splice(idx, 1);
+    this.onConfigChange();
+  }
+
+  deleteGaugeIconByIdx(idx: number): void {
+    let icons = _.cloneDeep(this.gaugeIcons);
+    icons.splice(idx, 1);
+    this.panel.gaugeIcons = icons;
+    this.onConfigChange();
   }
 
   // TODO: not "| undefined"
@@ -681,6 +1171,30 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.panel.displayWarnings = displayed;
   }
 
+  get gaugeLink(): string {
+    return this.panel.gaugeLink;
+  }
+
+  set gaugeLink(url: string) {
+    this.panel.gaugeLink = url;
+  }
+
+  get isChartwerkContainerClickable(): boolean {
+    if(this.gaugeLink === undefined || this.gaugeLink.length === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  goToLink(): void {
+    if(this.gaugeLink === undefined || this.gaugeLink.length === 0) {
+      return;
+    }
+    const url = this.templateSrv.replace(this.gaugeLink);
+    const redirectWindow = window.open(url, '_blank');
+    redirectWindow.location;
+  }
+
   updateHiddenMetrics(metricName: string) {
     const isIncluded = _.includes(this.hiddenMetrics, metricName);
     let metricList = this.hiddenMetrics;
@@ -690,6 +1204,42 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       metricList.push(metricName)
       this.hiddenMetrics = metricList;
     }
+  }
+
+  private _satifiesCondition(leftValue: number, rightValues: number[], conditions: Condition[]): boolean {
+    for(let idx = 0; idx < conditions.length; idx++) {
+      switch(conditions[idx]) {
+        case Condition.EQUAL:
+          if(leftValue !== rightValues[idx]) {
+            return false;
+          }
+          break;
+        case Condition.GREATER:
+          if(leftValue < rightValues[idx]) {
+            return false;
+          }
+          break;
+        case Condition.LESS:
+          if(leftValue > rightValues[idx]) {
+            return false;
+          }
+          break;
+        case Condition.GREATER_OR_EQUAL:
+          if(leftValue <= rightValues[idx]) {
+            return false;
+          }
+          break;
+        case Condition.LESS_OR_EQUAL:
+          if(leftValue >= rightValues[idx]) {
+            return false;
+          }
+          break;
+        default:
+          throw new Error(`Unknown condition: ${conditions[idx]}`);
+      }
+    }
+    
+    return true;
   }
 
   private _checkGrafanaVersion(): void {

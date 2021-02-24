@@ -1,0 +1,8 @@
+<h5>Display variables inside the panel:</h5>
+<div class="gf-form" ng-repeat="(name, options) in ctrl.displayedVariables">
+  <label class="gf-form-label template-variable width-24"> {{ options.label || name }} (${{ name }}) </label>
+  <gf-form-switch
+    on-change="ctrl.toggleVariableDisplay(name)"
+    checked="options.displayed"
+  />
+</div>

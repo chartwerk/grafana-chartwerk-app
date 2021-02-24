@@ -1,0 +1,66 @@
+<div class="gf-form">
+  <label class="gf-form-label query-keyword width-12"> Default Gauge Color </label>
+  <input
+    type="string"
+    class="gf-form-input width-12"
+    ng-model="ctrl.defaultGaugeColor"
+    ng-blur="ctrl.onConfigChange()"
+  >
+</div>
+
+<div class="gf-form" ng-repeat="(idx, threshold) in ctrl.gaugeThresholds">
+  <label class="gf-form-label query-keyword width-6"> Color </label>
+  <!-- TODO: use color-picker instead -->
+  <input
+    type="text"
+    class="gf-form-input width-6"
+    ng-model="threshold.color"
+    ng-blur="ctrl.onConfigChange()"
+  >
+
+  <label class="gf-form-label query-keyword width-6"> 
+    <i class="fa fa-info" bs-tooltip="'Enable to select a metric with dynamic threshold'"></i>
+    &nbsp; Use metric
+  </label>
+  <gf-form-switch
+    class="gf-form"
+    label=''
+    checked="threshold.isUsingMetric"
+  ></gf-form-switch>
+
+  <label ng-if="!threshold.isUsingMetric" class="gf-form-label query-keyword width-6"> Value </label>
+  <input
+    ng-if="!threshold.isUsingMetric"
+    type="number"
+    class="gf-form-input width-6"
+    ng-model="threshold.value"
+    ng-blur="ctrl.onConfigChange()"
+  >
+
+  <label ng-if="threshold.isUsingMetric" class="gf-form-label width-6"> Metric </label>
+  <div ng-if="threshold.isUsingMetric" class="gf-form-select-wrapper width-6">
+    <select
+      class="gf-form-input"
+      ng-model="threshold.metric"
+      ng-options="metric for metric in ctrl.metricNames"
+      ng-change="ctrl.onConfigChange()"
+    ></select>
+  </div>
+
+  <button
+    ng-click="ctrl.deleteGaugeThreshold(idx)"
+    class="query-editor-row__action"
+    bs-tooltip="'Delete'"
+  >
+    <a class="pointer">
+      <i class="fa fa-fw fa-trash"></i>
+    </a>
+  </button>
+</div>
+
+<div class="gf-form">
+  <button class="btn btn-secondary width-12" ng-click="ctrl.addGaugeThreshold()">
+    <i class="fa fa-plus"></i>
+    &ensp;Add Threshold
+  </button>
+</div>

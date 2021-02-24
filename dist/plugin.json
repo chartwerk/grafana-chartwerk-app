@@ -1,0 +1,27 @@
+{
+  "type": "panel",
+  "name": "Chartwerk",
+  "id": "corpglory-chartwerk-panel",
+  "info": {
+    "description": "Chartwerk",
+    "author": {
+      "name": "CorpGlory Inc.",
+      "url": "chartwerk.io"
+    },
+    "keywords": [ ],
+    "logos": {
+      "small": "assets/logo.svg"
+    },
+    "links": [ ],
+    "screenshots": [{
+      "name": "Main",
+      "path": "assets/screenshots/main.png"
+    }],
+    "version": "0.2.0",
+    "updated": "2021-02-12"
+  },
+  "dependencies": {
+    "grafanaVersion": "6.6.1+",
+    "plugins": [ ]
+  }
+}
