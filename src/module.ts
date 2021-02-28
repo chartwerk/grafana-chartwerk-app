@@ -1194,7 +1194,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       return;
     }
     const url = this.templateSrv.replace(this.gaugeLink);
-    const redirectWindow = window.open(url, '_blank');
+    const redirectWindow = window.open(url, '_Self');
     redirectWindow.location;
   }
 
