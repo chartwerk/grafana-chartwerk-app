@@ -130,6 +130,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     gaugeUrl: '',
     defaultGaugeColor: DEFAULT_GAUGE_COLOR,
     valueDecimals: 1,
+    gaugeOptions: {
+      valueSize: 16
+    },
     gaugeMaxValue: {
       value: null,
       isUsingMetric: false,
