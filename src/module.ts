@@ -675,7 +675,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       stops,
       defaultColor: this.defaultGaugeColor,
       icons,
-      valueSize: this.panel.gaugeOptions.valueSize
+      valueSize: this.panel.gaugeOptions.valueSize,
+      valueArcBackgroundColor: this.panel.gaugeOptions.backgroundColor
     };
     // @ts-ignore
     return options;
