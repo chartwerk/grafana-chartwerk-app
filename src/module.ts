@@ -41,6 +41,7 @@ const PLUGIN_PATH = 'public/plugins/corpglory-chartwerk-panel';
 const PARTIALS_PATH = `${PLUGIN_PATH}/partials`;
 const MILLISECONDS_IN_MINUTE = 60 * 1000;
 const DEFAULT_GAUGE_COLOR = '#37872d';
+const DEFAULT_GAUGE_BACKGROUND_COLOR = 'rgba(38, 38, 38, 0.1)';
 const DEFAULT_GAUGE_ICON_SIZE = 40;
 
 
@@ -131,7 +132,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     defaultGaugeColor: DEFAULT_GAUGE_COLOR,
     valueDecimals: 1,
     gaugeOptions: {
-      valueSize: 16
+      valueSize: 16,
+      backgroundColor: DEFAULT_GAUGE_BACKGROUND_COLOR
     },
     gaugeMaxValue: {
       value: null,
@@ -672,7 +674,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       valueFormatter: this.valueFormatter,
       stops,
       defaultColor: this.defaultGaugeColor,
-      icons
+      icons,
+      valueSize: this.panel.gaugeOptions.valueSize
     };
     // @ts-ignore
     return options;
