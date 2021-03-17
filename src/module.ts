@@ -133,7 +133,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     valueDecimals: 1,
     gaugeOptions: {
       valueFontSize: 16,
-      backgroundColor: DEFAULT_GAUGE_BACKGROUND_COLOR
+      backgroundColor: DEFAULT_GAUGE_BACKGROUND_COLOR,
+      reversed: false,
     },
     gaugeMaxValue: {
       value: null,
@@ -676,7 +677,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       defaultColor: this.defaultGaugeColor,
       icons,
       valueFontSize: this.panel.gaugeOptions.valueFontSize,
-      valueArcBackgroundColor: this.panel.gaugeOptions.backgroundColor
+      valueArcBackgroundColor: this.panel.gaugeOptions.backgroundColor,
+      reversed: this.panel.gaugeOptions.reversed
     };
     // @ts-ignore
     return options;

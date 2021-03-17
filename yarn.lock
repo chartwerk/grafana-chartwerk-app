@@ -140,9 +140,9 @@
   version "0.1.0"
   resolved "https://codeload.github.com/chartwerk/core/tar.gz/ca53d7a950ed8d2e34c490badd49b25326bd76a9"
 
-"@chartwerk/gauge-pod@github:chartwerk/gauge-pod#27c2da02ab4d780a39628ab528e62152c456287e":
+"@chartwerk/gauge-pod@github:chartwerk/gauge-pod#fffae909638249ba5a94bbd0d55658f617ca7f35":
   version "0.1.0"
-  resolved "https://codeload.github.com/chartwerk/gauge-pod/tar.gz/27c2da02ab4d780a39628ab528e62152c456287e"
+  resolved "https://codeload.github.com/chartwerk/gauge-pod/tar.gz/fffae909638249ba5a94bbd0d55658f617ca7f35"
   dependencies:
     "@chartwerk/core" "github:chartwerk/core#dist"
 
