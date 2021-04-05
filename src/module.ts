@@ -422,7 +422,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   filterSeries(): void {
-    console.log('filterSeries', this.series);
     this.series.forEach(serie => {
       if(serie.datapoints === undefined) {
         return;
