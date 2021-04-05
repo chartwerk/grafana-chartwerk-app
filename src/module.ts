@@ -409,6 +409,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   filterSeries(): void {
+    console.log('filterSeries', this.series);
     this.series.forEach(serie => {
       if(serie.datapoints === undefined) {
         return;
@@ -456,9 +457,41 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   onDataReceived(series: ChartwerkTimeSerie[]): void {
     this.warning = '';
 
-    this.series = series;
+    this.setSeries(series);
     this.filterSeries();
     this.render();
+  }
+
+  setSeries(series: any): void {
+    if(series.length > 0 && series[0].type === 'table') {
+      this.series = this.getSeriesFromTableData(series[0]);
+    } else {
+      this.series = series;
+    }
+  }
+
+  getSeriesFromTableData(data: any): any {
+    if(data.columns[0] === undefined || data.columns[0].text !== 'Time') {
+      throw new Error('Map Error: First table column must be "Time"');      
+    }
+    const metricsNames = data.columns
+      .filter(column => column.text !== 'Time')
+      .map(column => column.displayNameFromDS || column.displayName || column.text);
+    // TODO: Maybe use time column index;
+    const timeColumn = data.rows.map(row => row[0]);
+    console.log('metricsNames', metricsNames);
+    const series = metricsNames.map((name, idx) => {
+      const metricColumnIdx = idx + 1; // idx === 0 for time;
+      const metricColumn = data.rows.map(row => row[metricColumnIdx]);
+      const datapoints = _.zip(metricColumn, timeColumn);
+      return {
+        alias: name,
+        target: name,
+        color: 'red',
+        datapoints
+      }
+    });
+    return series;
   }
 
   onVariableUpdate(variable: QueryVariable): void {
