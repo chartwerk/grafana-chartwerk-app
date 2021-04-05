@@ -76,6 +76,19 @@ enum IconPosition {
   UPPER_RIGHT = 'Upper right'
 }
 
+type TimeSerie = {
+  target: string;
+  datapoints: [number, number][];
+  alias?: string;
+  color?: string;
+};
+type Table = {
+  color: string,
+  columns: { text: string, displayNameFromDS?: string, displayName?: string }[],
+  rows: number[][],
+  type: string
+};
+
 type IconConfig = {
   position: IconPosition;
   url: string;
@@ -453,12 +466,45 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return _.find(this.templateVariables, variable => variable.name === variableName);
   }
 
-  onDataReceived(series: ChartwerkTimeSerie[]): void {
+  onDataReceived(series: TimeSerie[] | [Table]): void {
     this.warning = '';
 
-    this.series = series;
+    this.setSeries(series);
     this.filterSeries();
     this.render();
+  }
+
+  setSeries(series: TimeSerie[] | [Table]): void {
+    if(series.length > 0 && (series[0] as Table).type === 'table') {
+      this.series = this.getSeriesFromTableData((series[0] as Table));
+    } else {
+      this.series = series as TimeSerie[];
+    }
+  }
+
+  getSeriesFromTableData(data: Table): TimeSerie[] {
+    if(data.columns[0] === undefined || data.columns[0].text !== 'Time') {
+      const message = 'Map Error: First table column must be "Time"';
+      this.addMessageToWarning(message);
+      throw new Error(message);
+    }
+    const metricsNames = data.columns
+      .filter(column => column.text !== 'Time')
+      .map(column => column.displayNameFromDS || column.displayName || column.text);
+    // TODO: Maybe use time column index;
+    const timeColumn = data.rows.map(row => row[0]);
+
+    const series = metricsNames.map((name, idx) => {
+      const metricColumnIdx = idx + 1; // metricColumnIdx === 0 for time;
+      const metricColumn = data.rows.map(row => row[metricColumnIdx]);
+      const datapoints = _.zip(metricColumn, timeColumn);
+      return {
+        alias: name,
+        target: name,
+        datapoints
+      }
+    });
+    return series;
   }
 
   onVariableUpdate(variable: QueryVariable): void {
