@@ -76,11 +76,11 @@ enum IconPosition {
   UPPER_RIGHT = 'Upper right'
 }
 
-type Serie = {
-  alias: string;
+type TimeSerie = {
   target: string;
-  color: string;
   datapoints: [number, number][];
+  alias?: string;
+  color?: string;
 };
 type Table = {
   color: string,
@@ -466,7 +466,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return _.find(this.templateVariables, variable => variable.name === variableName);
   }
 
-  onDataReceived(series: Serie[] | [Table]): void {
+  onDataReceived(series: TimeSerie[] | [Table]): void {
     this.warning = '';
 
     this.setSeries(series);
@@ -474,15 +474,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.render();
   }
 
-  setSeries(series: Serie[] | [Table]): void {
+  setSeries(series: TimeSerie[] | [Table]): void {
     if(series.length > 0 && (series[0] as Table).type === 'table') {
       this.series = this.getSeriesFromTableData((series[0] as Table));
     } else {
-      this.series = series as Serie[];
+      this.series = series as TimeSerie[];
     }
   }
 
-  getSeriesFromTableData(data: Table): Serie[] {
+  getSeriesFromTableData(data: Table): TimeSerie[] {
     if(data.columns[0] === undefined || data.columns[0].text !== 'Time') {
       const message = 'Map Error: First table column must be "Time"';
       this.addMessageToWarning(message);
@@ -501,7 +501,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       return {
         alias: name,
         target: name,
-        color: 'red',
         datapoints
       }
     });
