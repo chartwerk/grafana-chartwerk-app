@@ -76,6 +76,19 @@ enum IconPosition {
   UPPER_RIGHT = 'Upper right'
 }
 
+type Serie = {
+  alias: string;
+  target: string;
+  color: string;
+  datapoints: [number, number][];
+};
+type Table = {
+  color: string,
+  columns: { text: string, displayNameFromDS?: string, displayName?: string }[],
+  rows: number[][],
+  type: string
+};
+
 type IconConfig = {
   position: IconPosition;
   url: string;
@@ -454,7 +467,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return _.find(this.templateVariables, variable => variable.name === variableName);
   }
 
-  onDataReceived(series: ChartwerkTimeSerie[]): void {
+  onDataReceived(series: Serie[] | [Table]): void {
     this.warning = '';
 
     this.setSeries(series);
@@ -462,26 +475,28 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.render();
   }
 
-  setSeries(series: any): void {
-    if(series.length > 0 && series[0].type === 'table') {
-      this.series = this.getSeriesFromTableData(series[0]);
+  setSeries(series: Serie[] | [Table]): void {
+    if(series.length > 0 && (series[0] as Table).type === 'table') {
+      this.series = this.getSeriesFromTableData((series[0] as Table));
     } else {
-      this.series = series;
+      this.series = series as Serie[];
     }
   }
 
-  getSeriesFromTableData(data: any): any {
+  getSeriesFromTableData(data: Table): Serie[] {
     if(data.columns[0] === undefined || data.columns[0].text !== 'Time') {
-      throw new Error('Map Error: First table column must be "Time"');      
+      const message = 'Map Error: First table column must be "Time"';
+      this.addMessageToWarning(message);
+      throw new Error(message);
     }
     const metricsNames = data.columns
       .filter(column => column.text !== 'Time')
       .map(column => column.displayNameFromDS || column.displayName || column.text);
     // TODO: Maybe use time column index;
     const timeColumn = data.rows.map(row => row[0]);
-    console.log('metricsNames', metricsNames);
+
     const series = metricsNames.map((name, idx) => {
-      const metricColumnIdx = idx + 1; // idx === 0 for time;
+      const metricColumnIdx = idx + 1; // metricColumnIdx === 0 for time;
       const metricColumn = data.rows.map(row => row[metricColumnIdx]);
       const datapoints = _.zip(metricColumn, timeColumn);
       return {
