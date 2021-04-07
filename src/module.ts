@@ -202,6 +202,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     super($scope, $injector);
     _.defaults(this.panel, this.panelDefaults);
 
+    // TODO: add useDataFrames field to @types/grafana
+    // @ts-ignore
+    this.useDataFrames = true;
+
     this._checkGrafanaVersion();
 
     this.events.on(PanelEvents.editModeInitialized, this.onInitEditMode.bind(this));
@@ -1300,7 +1304,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
           throw new Error(`Unknown condition: ${conditions[idx]}`);
       }
     }
-    
+
     return true;
   }
 
