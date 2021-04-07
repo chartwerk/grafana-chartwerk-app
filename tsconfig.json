@@ -21,6 +21,6 @@
     "noImplicitThis": false,
     "noImplicitUseStrict": false,
     "noImplicitAny": false,
-    "noUnusedLocals": true,
+    "noUnusedLocals": true
   }
 }

@@ -3,7 +3,7 @@ import './sass/panel.light.scss';
 
 import template from './partials/module.html';
 
-import './timepicker';
+// import './timepicker';
 
 import { GraphTooltip } from './graph_tooltip';
 
@@ -205,6 +205,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this._checkGrafanaVersion();
 
     this.events.on(PanelEvents.editModeInitialized, this.onInitEditMode.bind(this));
+    this.events.on(PanelEvents.dataFramesReceived, (data) => data);
     this.dashboard.events.on('time-range-updated', this.onDashboardTimeRangeChange.bind(this));
 
     appEvents.on('graph-hover', this._onGraphHover.bind(this));
@@ -222,9 +223,10 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       throw new Error(`Can't render: there is no .chartwerk-container div`);
     }
     this.chartContainer = containers[0] as HTMLElement;
-
+    console.log('PanelEvents', PanelEvents);
     this.events.on(PanelEvents.render, this.onRender.bind(this));
     this.events.on(PanelEvents.dataReceived, this.onDataReceived.bind(this));
+    this.events.on(PanelEvents.dataFramesReceived, this.onDataFramesReceived.bind(this));
   }
 
   setVariable(variableName: string, value: string): void {
@@ -474,7 +476,12 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.render();
   }
 
+  onDataFramesReceived(data): void {
+    console.log('onDataFramesReceived', data);
+  }
+
   setSeries(series: TimeSerie[] | [Table]): void {
+    console.log('series', series);
     if(series.length > 0 && (series[0] as Table).type === 'table') {
       this.series = this.getSeriesFromTableData((series[0] as Table));
     } else {
