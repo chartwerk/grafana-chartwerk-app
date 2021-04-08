@@ -4,7 +4,7 @@ import './sass/panel.light.scss';
 import template from './partials/module.html';
 
 // import './timepicker';
-
+import { DataProcessor } from './data_processor';
 import { GraphTooltip } from './graph_tooltip';
 
 import { isArraySortedAscending } from './utils';
@@ -117,6 +117,7 @@ if (window.grafanaBootData.user.lightTheme) {
 
 class ChartwerkCtrl extends MetricsPanelCtrl {
   static template = template;
+  processor: DataProcessor;
   panelDefaults = {
     displayedVariablesNames: [],
     xAxisOrientation: TickOrientation.HORIZONTAL,
@@ -205,6 +206,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     // TODO: add useDataFrames field to @types/grafana
     // @ts-ignore
     this.useDataFrames = true;
+    this.processor = new DataProcessor(this.panel);
 
     this._checkGrafanaVersion();
 
@@ -482,6 +484,11 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
 
   onDataFramesReceived(data): void {
     console.log('onDataFramesReceived', data);
+    const seriesList = this.processor.getSeriesList({
+      dataList: data,
+      range: this.range,
+    });
+    console.log('seriesList', seriesList);
   }
 
   setSeries(series: TimeSerie[] | [Table]): void {
