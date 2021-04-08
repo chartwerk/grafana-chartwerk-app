@@ -25,6 +25,7 @@ import {
   PanelEvents,
   TimeRange,
   DateTime,
+  DataFrame,
   AbsoluteTimeRange,
   dateTimeForTimeZone,
   getValueFormat,
@@ -485,7 +486,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     this.render();
   }
 
-  onDataFramesReceived(data): void {
+  onDataFramesReceived(data: DataFrame[]): void {
     this.warning = '';
 
     const seriesList = this.processor.getSeriesList({
