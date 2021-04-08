@@ -204,15 +204,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     super($scope, $injector);
     _.defaults(this.panel, this.panelDefaults);
 
-    // TODO: add useDataFrames field to @types/grafana
-    // @ts-ignore
-    this.useDataFrames = true;
-    this.processor = new DataProcessor(this.panel);
-
     this._checkGrafanaVersion();
 
     this.events.on(PanelEvents.editModeInitialized, this.onInitEditMode.bind(this));
-    this.events.on(PanelEvents.dataFramesReceived, (data) => data);
     this.dashboard.events.on('time-range-updated', this.onDashboardTimeRangeChange.bind(this));
 
     appEvents.on('graph-hover', this._onGraphHover.bind(this));
@@ -474,8 +468,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   subscribeToDataReceivedEvent(): void {
-    console.log('this.grafanaVersion', this.grafanaVersion[0]);
-    if(this.grafanaVersion.length !== null && this.grafanaVersion[0] === '7') {
+    // @ts-ignore
+    if(this.useDataFrames) {
+      this.processor = new DataProcessor(this.panel);
       this.events.on(PanelEvents.dataFramesReceived, this.onDataFramesReceived.bind(this));
     } else {
       this.events.on(PanelEvents.dataReceived, this.onDataReceived.bind(this));
@@ -1346,6 +1341,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
     if(isVersionGtOrEq(grafanaVersion, '7.0.0')) {
       this.isPanelTimeRangeSupported = false;
+      // TODO: add useDataFrames field to @types/grafana
+      // @ts-ignore
+      this.useDataFrames = true;
     }
   }
 
