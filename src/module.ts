@@ -225,7 +225,7 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
     this.chartContainer = containers[0] as HTMLElement;
     this.events.on(PanelEvents.render, this.onRender.bind(this));
-    this.subscribeToDataReceivedEvent();    
+    this.subscribeToDataReceivedEvent();
   }
 
   setVariable(variableName: string, value: string): void {
@@ -1327,7 +1327,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
           throw new Error(`Unknown condition: ${conditions[idx]}`);
       }
     }
-
     return true;
   }
 
