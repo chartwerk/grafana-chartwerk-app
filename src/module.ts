@@ -4,7 +4,7 @@ import './sass/panel.light.scss';
 import template from './partials/module.html';
 
 import './timepicker';
-
+import { DataProcessor } from './data_processor';
 import { GraphTooltip } from './graph_tooltip';
 
 import { isArraySortedAscending } from './utils';
@@ -25,11 +25,13 @@ import {
   PanelEvents,
   TimeRange,
   DateTime,
+  DataFrame,
   AbsoluteTimeRange,
   dateTimeForTimeZone,
   getValueFormat,
   formattedValueToString
 } from '@grafana/data';
+import TimeSeries from 'grafana/app/core/time_series2';
 // TODO: import and use ChartWerk colors from @chartwerk/core
 import { colors as grafanaColorPalette } from '@grafana/ui';
 
@@ -117,6 +119,7 @@ if (window.grafanaBootData.user.lightTheme) {
 
 class ChartwerkCtrl extends MetricsPanelCtrl {
   static template = template;
+  processor: DataProcessor;
   panelDefaults = {
     displayedVariablesNames: [],
     xAxisOrientation: TickOrientation.HORIZONTAL,
@@ -222,9 +225,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       throw new Error(`Can't render: there is no .chartwerk-container div`);
     }
     this.chartContainer = containers[0] as HTMLElement;
-
     this.events.on(PanelEvents.render, this.onRender.bind(this));
-    this.events.on(PanelEvents.dataReceived, this.onDataReceived.bind(this));
+    this.subscribeToDataReceivedEvent();
   }
 
   setVariable(variableName: string, value: string): void {
@@ -466,10 +468,32 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return _.find(this.templateVariables, variable => variable.name === variableName);
   }
 
+  subscribeToDataReceivedEvent(): void {
+    // @ts-ignore
+    if(this.useDataFrames) {
+      this.processor = new DataProcessor(this.panel);
+      this.events.on(PanelEvents.dataFramesReceived, this.onDataFramesReceived.bind(this));
+    } else {
+      this.events.on(PanelEvents.dataReceived, this.onDataReceived.bind(this));
+    }
+  }
+
   onDataReceived(series: TimeSerie[] | [Table]): void {
     this.warning = '';
 
     this.setSeries(series);
+    this.filterSeries();
+    this.render();
+  }
+
+  onDataFramesReceived(data: DataFrame[]): void {
+    this.warning = '';
+
+    const seriesList = this.processor.getSeriesList({
+      dataList: data,
+      range: this.range,
+    });
+    this.setSeriesFromFrame(seriesList);
     this.filterSeries();
     this.render();
   }
@@ -480,6 +504,17 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     } else {
       this.series = series as TimeSerie[];
     }
+  }
+
+  setSeriesFromFrame(series: TimeSeries[]): void {
+    series.map((serie: TimeSeries, idx: number) => {
+      this.series[idx] = {
+        target: serie.alias,
+        color: serie.color,
+        datapoints: serie.datapoints,
+        alias: serie.label
+      }
+    });
   }
 
   getSeriesFromTableData(data: Table): TimeSerie[] {
@@ -1293,7 +1328,6 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
           throw new Error(`Unknown condition: ${conditions[idx]}`);
       }
     }
-    
     return true;
   }
 
@@ -1307,6 +1341,9 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     }
     if(isVersionGtOrEq(grafanaVersion, '7.0.0')) {
       this.isPanelTimeRangeSupported = false;
+      // TODO: add useDataFrames field to @types/grafana
+      // @ts-ignore
+      this.useDataFrames = true;
     }
   }
 
