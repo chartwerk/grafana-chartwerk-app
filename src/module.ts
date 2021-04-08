@@ -3,7 +3,7 @@ import './sass/panel.light.scss';
 
 import template from './partials/module.html';
 
-// import './timepicker';
+import './timepicker';
 import { DataProcessor } from './data_processor';
 import { GraphTooltip } from './graph_tooltip';
 
@@ -30,6 +30,7 @@ import {
   getValueFormat,
   formattedValueToString
 } from '@grafana/data';
+import TimeSeries from 'grafana/app/core/time_series2';
 // TODO: import and use ChartWerk colors from @chartwerk/core
 import { colors as grafanaColorPalette } from '@grafana/ui';
 
@@ -229,10 +230,8 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
       throw new Error(`Can't render: there is no .chartwerk-container div`);
     }
     this.chartContainer = containers[0] as HTMLElement;
-    console.log('PanelEvents', PanelEvents);
     this.events.on(PanelEvents.render, this.onRender.bind(this));
-    this.events.on(PanelEvents.dataReceived, this.onDataReceived.bind(this));
-    this.events.on(PanelEvents.dataFramesReceived, this.onDataFramesReceived.bind(this));
+    this.subscribeToDataReceivedEvent();    
   }
 
   setVariable(variableName: string, value: string): void {
@@ -474,6 +473,15 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
     return _.find(this.templateVariables, variable => variable.name === variableName);
   }
 
+  subscribeToDataReceivedEvent(): void {
+    console.log('this.grafanaVersion', this.grafanaVersion[0]);
+    if(this.grafanaVersion.length !== null && this.grafanaVersion[0] === '7') {
+      this.events.on(PanelEvents.dataFramesReceived, this.onDataFramesReceived.bind(this));
+    } else {
+      this.events.on(PanelEvents.dataReceived, this.onDataReceived.bind(this));
+    }
+  }
+
   onDataReceived(series: TimeSerie[] | [Table]): void {
     this.warning = '';
 
@@ -483,21 +491,34 @@ class ChartwerkCtrl extends MetricsPanelCtrl {
   }
 
   onDataFramesReceived(data): void {
-    console.log('onDataFramesReceived', data);
+    this.warning = '';
+
     const seriesList = this.processor.getSeriesList({
       dataList: data,
       range: this.range,
     });
-    console.log('seriesList', seriesList);
+    this.setSeriesFromFrame(seriesList);
+    this.filterSeries();
+    this.render();
   }
 
   setSeries(series: TimeSerie[] | [Table]): void {
-    console.log('series', series);
     if(series.length > 0 && (series[0] as Table).type === 'table') {
       this.series = this.getSeriesFromTableData((series[0] as Table));
     } else {
       this.series = series as TimeSerie[];
     }
+  }
+
+  setSeriesFromFrame(series: TimeSeries[]): void {
+    series.map((serie: TimeSeries, idx: number) => {
+      this.series[idx] = {
+        target: serie.alias,
+        color: serie.color,
+        datapoints: serie.datapoints,
+        alias: serie.label
+      }
+    });
   }
 
   getSeriesFromTableData(data: Table): TimeSerie[] {
