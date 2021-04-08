@@ -16,6 +16,12 @@
     <i ng-if="ctrl.isTimePickerLocked" class="fa fa-lock" aria-hidden="true"></i>
     <i ng-if="!ctrl.isTimePickerLocked" class="fa fa-unlock-alt" aria-hidden="true"></i>
   </button>
+  <timepicker
+    ng-if="ctrl.isPanelTimeRangeSupported"
+    class="timepicker"
+    value="ctrl.timeRangeOverride"
+    onChange="ctrl.onTimeRangeApplyClick.bind(ctrl)"
+  />
 </div>
 <div class="chartwerk-container" ng-class="{ 'clickable': ctrl.isChartwerkContainerClickable }" ng-click="ctrl.goToLink()"></div>
 <div class="chartwerk-warning" ng-if="ctrl.shouldDisplayWarnings && ctrl.warning !== ''">
